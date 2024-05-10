@@ -1,0 +1,27 @@
+service: confirm-payment
+useDotenv: true
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: us-east-1
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+custom:
+  serverless-offline:
+    httpPort: 3000
+    lambdaPort: 3001
+
+functions:
+  app:
+    handler: src/handler.handler
+    timeout: 900
+    events:
+      - http:
+          method: POST
+          path: /confirm-payment
