@@ -1,4 +1,5 @@
 export interface PaymentEntity {
+  callbackStatus: Status;
   createdAt: number;
   id: string;
   items: Item[];
@@ -7,7 +8,6 @@ export interface PaymentEntity {
   provider: string;
   status: Status;
   user: string;
-  callbackStatus?: Status;
 }
 
 interface Item {

@@ -2,17 +2,17 @@ import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
 import { ISnsService, PaymentConfirmationPayload } from './sns.interface';
 
+export const sendPaymentConfirmation = (payload: PaymentConfirmationPayload) => {
+  const { amount, id, transaction_code, transaction_date, user } = payload;
+
+  const sesClient = new SESClient({ region: 'us-east-1' });
+};
+
 export class SnsService implements ISnsService {
   private sesClient: SESClient;
 
   constructor() {
-    this.sesClient = new SESClient({
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
-      },
-      region: 'us-east-1',
-    });
+    this.sesClient = new SESClient({ region: 'us-east-1' });
   }
 
   sendPaymentConfirmation = async (payload: PaymentConfirmationPayload) => {

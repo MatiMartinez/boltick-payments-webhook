@@ -1,4 +1,4 @@
-service: confirm-payment
+service: payments-webhook
 useDotenv: true
 frameworkVersion: '3'
 
