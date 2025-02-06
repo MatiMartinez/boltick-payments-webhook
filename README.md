@@ -1,17 +1,5 @@
-# Instrucciones
-
-## Local
-
-Configurar Access y Secret de AWS
-
-## Subir lambda
-
-npm install
+# Nueva Lambda
 
 npm run build
 
-delete node_modules
-
-npm install --omit=dev
-
-zip -r payments-webhook.zip build node_modules/
+zip -r build/handler.zip build/handler.js

@@ -14,7 +14,19 @@
     "skipLibCheck": true,
     "strict": true,
     "strictPropertyInitialization": false,
-    "target": "ES2015"
+    "target": "ES2015",
+    "paths": {
+      "@containers/*": ["src/infra/containers/*"],
+      "@controllers/*": ["src/infra/controllers/*"],
+      "@domain/*": ["src/domain/*"],
+      "@dtos/*": ["src/app/dtos/*"],
+      "@models/*": ["src/infra/models/*"],
+      "@repositories/*": ["src/infra/repositories/*"],
+      "@routes/*": ["src/infra/routes/*"],
+      "@services/*": ["src/infra/services/*"],
+      "@useCases/*": ["src/app/useCases/*"]
+    }
   },
+  "include": ["src/**/*", "build.ts"],
   "exclude": ["node_modules"]
 }
