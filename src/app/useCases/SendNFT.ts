@@ -58,14 +58,13 @@ export class SendNFTUseCase {
     const fileName = `nfts/${uuid()}.json`;
 
     const image = this.chooseImage(nft.type);
-    const NFTName = `${nft.collectionName} - ${nft.type}`;
     const s3Uri = `${bucket}/${fileName}`;
 
     await this.S3Service.uploadFile(bucket, fileName, {
       createdAt: new Date().getTime(),
       imageUrl: image,
-      name: NFTName,
       paymentId: paymentId,
+      type: nft.type,
       unitPrice: nft.unitPrice,
       used: 0,
     });

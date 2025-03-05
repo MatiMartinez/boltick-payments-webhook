@@ -25,7 +25,7 @@ export class Container {
     this.EventBridgeService = new EventBridgeService();
     this.MercadoPagoService = new MercadoPagoService(accessToken);
     this.S3Service = new S3Service();
-    this.SolanaService = new SolanaService('testnet');
+    this.SolanaService = new SolanaService('devnet');
     this.PaymentRepository = new PaymentRepository();
     this.SendNFTUseCase = new SendNFTUseCase(this.PaymentRepository, this.S3Service, this.SolanaService);
     this.UpdatePaymentUseCase = new UpdatePaymentUseCase(
