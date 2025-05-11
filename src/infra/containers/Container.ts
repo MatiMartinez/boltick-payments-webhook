@@ -5,7 +5,8 @@ import { SolanaService } from '@services/Solana/SolanaService';
 import { PaymentRepository } from '@repositories/PaymentRepository';
 import { SendNFTUseCase } from '@useCases/SendNFT';
 import { UpdatePaymentUseCase } from '@useCases/UpdatePayment';
-import { PaymentController } from '@controllers/PaymentController';
+import { PaymentAPIController } from '@controllers/PaymentAPIController';
+import { PaymentSQSController } from '@controllers/PaymentSQSController';
 
 export class Container {
   private static instance: Container;
@@ -17,7 +18,8 @@ export class Container {
   private PaymentRepository: PaymentRepository;
   private SendNFTUseCase: SendNFTUseCase;
   private UpdatePaymentUseCase: UpdatePaymentUseCase;
-  private PaymentController: PaymentController;
+  private PaymentAPIController: PaymentAPIController;
+  private PaymentSQSController: PaymentSQSController;
 
   private constructor() {
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN as string;
@@ -33,8 +35,8 @@ export class Container {
       this.MercadoPagoService,
       this.EventBridgeService
     );
-    this.PaymentController = new PaymentController(this.SendNFTUseCase, this.UpdatePaymentUseCase);
-    // this.PaymentController = new PaymentController(this.UpdatePaymentUseCase);
+    this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase);
+    this.PaymentSQSController = new PaymentSQSController(this.SendNFTUseCase);
   }
 
   public static getInstance(): Container {
@@ -44,7 +46,11 @@ export class Container {
     return Container.instance;
   }
 
-  public getPaymentController(): PaymentController {
-    return this.PaymentController;
+  public getPaymentAPIController(): PaymentAPIController {
+    return this.PaymentAPIController;
+  }
+
+  public getPaymentSQSController(): PaymentSQSController {
+    return this.PaymentSQSController;
   }
 }

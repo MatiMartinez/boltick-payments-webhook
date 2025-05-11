@@ -38,16 +38,10 @@ export class UpdatePaymentUseCase {
 
     await Promise.all(
       updatedPayment.nfts.map(async (nft) => {
-        await this.EventBridgeService.sendEvent(
-          'SendNFTToWallet_QA',
-          'Send NFT to a wallet from Mercado Pago webhooks.',
-          {
-            id: updatedPayment.id,
-            nft: nft,
-            paymentId: updatedPayment?.paymentDetails?.id?.toString() as string,
-            userAddress: updatedPayment.walletPublicKey,
-          }
-        );
+        await this.EventBridgeService.sendEvent('SendNFTToWallet_QA', 'SEND_NFT', {
+          id: updatedPayment.id,
+          nftId: nft.id,
+        });
       })
     );
 

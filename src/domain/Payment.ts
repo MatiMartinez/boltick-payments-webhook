@@ -1,24 +1,25 @@
 export interface Payment {
   id: string;
+  callbackStatus: Status;
   createdAt: number;
-  updatedAt: number;
-  userId: string;
   eventId: string;
   nfts: NFT[];
-  walletPublicKey: string;
-
-  provider: Provider;
-  callbackStatus: Status;
-  paymentStatus: Status;
   paymentDetails?: PaymentDetails;
+  paymentStatus: Status;
+  provider: Provider;
+  updatedAt: number;
+  userId: string;
+  walletPublicKey: string;
 }
 
 export interface NFT {
   id: string;
   collectionName: string;
   collectionSymbol: string;
+  metadataUrl: string;
   mint: string;
   mintDate: number;
+  ticketNumber: string;
   transactionId: string;
   type: string;
   unitPrice: number;
