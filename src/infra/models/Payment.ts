@@ -1,9 +1,9 @@
-import * as dynamoose from 'dynamoose';
-import { Item } from 'dynamoose/dist/Item';
+import * as dynamoose from "dynamoose";
+import { Item } from "dynamoose/dist/Item";
 
-import { Payment } from '@domain/Payment';
+import { PaymentEntity } from "@domain/entities/PaymentEntity";
 
-interface PaymentDocument extends Payment, Item {}
+interface PaymentDocument extends PaymentEntity, Item {}
 
 const NFTSchema = new dynamoose.Schema({
   id: { type: String, required: true },
@@ -26,12 +26,16 @@ const PaymentDetailsSchema = new dynamoose.Schema({
 });
 
 const PaymentSchema = new dynamoose.Schema({
-  id: { type: String, required: true, index: { name: 'idIndex' } },
+  id: { type: String, required: true, index: { name: "idIndex" } },
   callbackStatus: { type: String, required: true },
   createdAt: { type: Number, required: true, rangeKey: true },
   eventId: { type: String, required: true },
   nfts: { type: Array, schema: [{ type: Object, schema: NFTSchema }] },
-  paymentDetails: { type: Object, required: false, schema: PaymentDetailsSchema },
+  paymentDetails: {
+    type: Object,
+    required: false,
+    schema: PaymentDetailsSchema,
+  },
   paymentStatus: { type: String, required: true },
   provider: { type: String, required: true },
   updatedAt: { type: Number, required: true },
@@ -41,4 +45,8 @@ const PaymentSchema = new dynamoose.Schema({
 
 const tableName = `PAYMENTS_${process.env.ENV}`;
 
-export const PaymentModel = dynamoose.model<PaymentDocument>(tableName, PaymentSchema, { throughput: 'ON_DEMAND' });
+export const PaymentModel = dynamoose.model<PaymentDocument>(
+  tableName,
+  PaymentSchema,
+  { throughput: "ON_DEMAND" }
+);

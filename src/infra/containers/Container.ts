@@ -1,12 +1,12 @@
-import { EventBridgeService } from '@services/EventBridge/EventBridgeService';
-import { MercadoPagoService } from '@services/MercadoPago/MercadoPagoService';
-import { S3Service } from '@services/S3/S3Service';
-import { SolanaService } from '@services/Solana/SolanaService';
-import { PaymentRepository } from '@repositories/PaymentRepository';
-import { SendNFTUseCase } from '@useCases/SendNFT';
-import { UpdatePaymentUseCase } from '@useCases/UpdatePayment';
-import { PaymentAPIController } from '@controllers/PaymentAPIController';
-import { PaymentSQSController } from '@controllers/PaymentSQSController';
+import { EventBridgeService } from "@services/EventBridge/EventBridgeService";
+import { MercadoPagoService } from "@services/MercadoPago/MercadoPagoService";
+import { S3Service } from "@services/S3/S3Service";
+import { SolanaService } from "@services/Solana/SolanaService";
+import { PaymentDynamoRepository } from "@repositories/PaymentDynamoRepository";
+import { SendNFTUseCase } from "@useCases/SendNFTUseCase/SendNFTUseCase";
+import { UpdatePaymentUseCase } from "@useCases/UpdatePaymentUseCase/UpdatePaymentUseCase";
+import { PaymentAPIController } from "@controllers/PaymentAPIController";
+import { PaymentSQSController } from "@controllers/PaymentSQSController";
 
 export class Container {
   private static instance: Container;
@@ -15,7 +15,7 @@ export class Container {
   private MercadoPagoService: MercadoPagoService;
   private S3Service: S3Service;
   private SolanaService: SolanaService;
-  private PaymentRepository: PaymentRepository;
+  private PaymentRepository: PaymentDynamoRepository;
   private SendNFTUseCase: SendNFTUseCase;
   private UpdatePaymentUseCase: UpdatePaymentUseCase;
   private PaymentAPIController: PaymentAPIController;
@@ -23,19 +23,36 @@ export class Container {
 
   private constructor() {
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN as string;
+    const apiKey = process.env.SOLANA_API_KEY as string;
+
+    if (!accessToken) {
+      throw new Error(
+        "MERCADOPAGO_ACCESS_TOKEN environment variable is required"
+      );
+    }
+
+    if (!apiKey) {
+      throw new Error("SOLANA_API_KEY environment variable is required");
+    }
 
     this.EventBridgeService = new EventBridgeService();
     this.MercadoPagoService = new MercadoPagoService(accessToken);
     this.S3Service = new S3Service();
-    this.SolanaService = new SolanaService('devnet');
-    this.PaymentRepository = new PaymentRepository();
-    this.SendNFTUseCase = new SendNFTUseCase(this.PaymentRepository, this.S3Service, this.SolanaService);
+    this.SolanaService = new SolanaService(apiKey);
+    this.PaymentRepository = new PaymentDynamoRepository();
+    this.SendNFTUseCase = new SendNFTUseCase(
+      this.PaymentRepository,
+      this.S3Service,
+      this.SolanaService
+    );
     this.UpdatePaymentUseCase = new UpdatePaymentUseCase(
       this.PaymentRepository,
       this.MercadoPagoService,
       this.EventBridgeService
     );
-    this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase);
+    this.PaymentAPIController = new PaymentAPIController(
+      this.UpdatePaymentUseCase
+    );
     this.PaymentSQSController = new PaymentSQSController(this.SendNFTUseCase);
   }
 

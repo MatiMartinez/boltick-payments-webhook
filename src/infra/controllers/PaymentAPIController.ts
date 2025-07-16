@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 
-import { UpdatePaymentUseCase } from '@useCases/UpdatePayment';
+import { UpdatePaymentUseCase } from "@useCases/UpdatePaymentUseCase/UpdatePaymentUseCase";
 
 export class PaymentAPIController {
   constructor(private UpdatePaymentUseCase: UpdatePaymentUseCase) {}
@@ -11,7 +11,7 @@ export class PaymentAPIController {
       res.status(200).json({ payment: result });
     } catch (error) {
       const err = error as Error;
-      console.error('Error updating payment from webhook:', err.message);
+      console.error("Error updating payment from webhook:", err.message);
       res.status(400).json({ error: err.message });
     }
   }

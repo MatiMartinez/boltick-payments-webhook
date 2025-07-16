@@ -1,68 +1,150 @@
-import { Connection, clusterApiUrl, Keypair, PublicKey, Cluster } from '@solana/web3.js';
-import { Metaplex, Nft, keypairIdentity } from '@metaplex-foundation/js';
+import { ISolanaService, NFT, Token } from "./interface";
 
-import { NFT } from './interface';
+export class SolanaService implements ISolanaService {
+  private apiKey: string;
+  private rpcUrl: string;
+  private creatorAddress: string;
 
-export class SolanaService {
-  private connection: Connection;
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+    this.rpcUrl = `https://mainnet.helius-rpc.com/?api-key=${apiKey}`;
 
-  constructor(cluster: Cluster) {
-    this.connection = new Connection(clusterApiUrl(cluster), 'confirmed'); // testnet
+    this.creatorAddress = process.env.CREATOR_PUBLIC_KEY as string;
+    if (!this.creatorAddress) {
+      throw new Error("CREATOR_PUBLIC_KEY environment variable is required");
+    }
   }
 
-  async mintNFT(nft: NFT): Promise<Nft> {
+  async mintNFT(
+    userAddress: string,
+    nft: NFT,
+    _collectionName: string
+  ): Promise<Token> {
     try {
-      const privateWallet = this.getPrivateWallet();
-      const collectionAddress = this.getCollectionAddress();
+      console.log(`Minting cNFT: ${nft.name} to ${userAddress}`);
 
-      const metaplex = Metaplex.make(this.connection).use(keypairIdentity(privateWallet));
+      if (!this.isValidSolanaAddress(userAddress)) {
+        throw new Error("Invalid user address");
+      }
 
-      const response = await metaplex.nfts().create({
+      const mintParams = {
         name: nft.name,
         symbol: nft.symbol,
-        uri: nft.uri,
+        description: nft.description,
+        imageUrl: nft.image,
+        externalUrl: nft.external_url,
+        owner: userAddress,
+        delegate: userAddress,
+        collection: "",
         sellerFeeBasisPoints: 0,
-        creators: [{ address: new PublicKey(privateWallet.publicKey), share: 100 }],
-        collection: new PublicKey(collectionAddress),
-        isMutable: false,
+        creators: [
+          {
+            address: this.creatorAddress,
+            share: 100,
+          },
+        ],
+        confirmTransaction: true,
+      };
+
+      console.log("Calling Helius with params:", mintParams);
+
+      const response = await this.callHeliusRPC(
+        "mintCompressedNft",
+        mintParams
+      );
+
+      if (response.error) {
+        throw new Error(`Helius RPC Error: ${response.error.message}`);
+      }
+
+      const result = response.result;
+
+      if (!result.minted || !result.assetId) {
+        throw new Error(
+          `Mint failed. Minted: ${result.minted}, AssetId: ${result.assetId}, Signature: ${result.signature}`
+        );
+      }
+
+      console.log("cNFT minted successfully!");
+      console.log(`Asset ID: ${result.assetId}`);
+      console.log(`Signature: ${result.signature}`);
+
+      return {
+        address: result.assetId,
+        name: nft.name,
+        symbol: nft.symbol,
+        description: nft.description,
+        image: nft.image,
+        external_url: nft.external_url,
+      };
+    } catch (error) {
+      const err = error as Error;
+      console.error(`Error minting cNFT: ${err.message}`);
+      throw new Error(`Error minting cNFT: ${err.message}`);
+    }
+  }
+
+  private async callHeliusRPC(method: string, params: any): Promise<any> {
+    const payload = {
+      jsonrpc: "2.0",
+      id: `mint-${Date.now()}`,
+      method: method,
+      params: params,
+    };
+
+    console.log("Making RPC call to:", this.rpcUrl);
+    console.log("Payload:", JSON.stringify(payload, null, 2));
+
+    try {
+      const response = await fetch(this.rpcUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
 
-      console.log('NFT successfully created: ', JSON.stringify(response, null, 2));
+      console.log("Response status:", response.status);
 
-      return response.nft;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Response error:", errorText);
+        throw new Error(
+          `HTTP ${response.status}: ${response.statusText} - ${errorText}`
+        );
+      }
+
+      const data = await response.json();
+      console.log("Response data:", data);
+
+      return data;
     } catch (error) {
-      const err = error as Error;
-      console.error(err.message);
-      throw new Error('Error minting NFT.');
+      console.error("Network error:", error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Network error occurred");
     }
   }
 
-  async sendNFT(userAddress: string, nft: Nft): Promise<void> {
+  private isValidSolanaAddress(address: string): boolean {
     try {
-      const privateWallet = this.getPrivateWallet();
-      const userPublicKey = new PublicKey(userAddress);
-
-      const metaplex = Metaplex.make(this.connection).use(keypairIdentity(privateWallet));
-
-      const { response } = await metaplex.nfts().transfer({ nftOrSft: nft, toOwner: userPublicKey });
-
-      console.log('NFT successfully transferred: ', JSON.stringify(response, null, 2));
-    } catch (error) {
-      const err = error as Error;
-      console.error(err.message);
-      throw new Error('Error sending NFT.');
+      const regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+      return regex.test(address);
+    } catch {
+      return false;
     }
   }
 
-  private getPrivateWallet(): Keypair {
-    const privateKeyHex = process.env.PRIVATE_KEY_HEX as string;
-    const privateKey = Uint8Array.from(Buffer.from(privateKeyHex, 'hex'));
-    const privateWallet = Keypair.fromSecretKey(privateKey);
-    return privateWallet;
-  }
-
-  private getCollectionAddress(): string {
-    const collectionAddress = process.env.COLLECTION_ADDRESS as string;
-    return collectionAddress;
+  async testConnection(): Promise<boolean> {
+    try {
+      console.log("Testing Helius connection...");
+      const response = await this.callHeliusRPC("getHealth", {});
+      console.log("Connection test successful");
+      return true;
+    } catch (error) {
+      console.error("Connection test failed:", error);
+      return false;
+    }
   }
 }

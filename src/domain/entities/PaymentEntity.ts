@@ -1,4 +1,4 @@
-export interface Payment {
+export interface PaymentEntity {
   id: string;
   callbackStatus: Status;
   createdAt: number;
@@ -32,5 +32,5 @@ interface PaymentDetails {
   updatedAt: number;
 }
 
-export type Status = 'Pending' | 'Approved' | 'Rejected';
-export type Provider = 'Mercado Pago';
+export type Status = "Pending" | "Approved" | "Rejected";
+export type Provider = "Mercado Pago";
