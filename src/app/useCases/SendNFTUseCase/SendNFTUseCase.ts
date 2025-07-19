@@ -99,7 +99,7 @@ export class SendNFTUseCase implements ISendNFTUseCase {
     payment: PaymentEntity,
     ticketNumber: string
   ): Promise<string> {
-    const bucket = "boltick-metadata";
+    const bucket = "boltick-nft-metadata";
     const fileName = `nfts/${uuid()}.json`;
 
     const image = this.chooseImage(nft.type);
