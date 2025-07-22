@@ -86,7 +86,7 @@ export class SendNFTUseCase implements ISendNFTUseCase {
     const image = this.chooseImage(nft.type);
 
     return {
-      name: `${nft.collectionName} - ${ticketNumber}`,
+      name: `${nft.collectionName}`,
       symbol: nft.collectionSymbol,
       description: `Ticket digital para ${nft.collectionName}. Número: ${ticketNumber}. Tipo: ${nft.type}.`,
       image: image,
