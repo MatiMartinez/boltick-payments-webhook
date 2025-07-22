@@ -2,8 +2,7 @@ import { Event } from "./interface";
 
 export const events: Event[] = [
   {
-    // id: "3c1c7414-2071-4e4c-9fc3-e9af8411e42f",
-    id: "3c1c7414-2071-4e4c-9fc3",
+    id: "3c1c7414-2071-4e4c-9fc3-e9af8411e42f",
     artists: [
       { name: "Sarah Chen", description: "Arte Generado por IA" },
       {
