@@ -12,16 +12,31 @@ export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
   ) {}
 
   async execute(input: MercadopagoWebhookInput) {
-    const payment = await this.PaymentRepository.getPaymentById(input.id);
+    const mercadoPagoPayment = await this.MercadoPagoService.getPayment(
+      input.data.id
+    );
+
+    if (!mercadoPagoPayment || !mercadoPagoPayment.external_reference) {
+      console.log(
+        "Mercado Pago payment not found: ",
+        JSON.stringify({ input, mercadoPagoPayment })
+      );
+      return true;
+    }
+
+    const payment = await this.PaymentRepository.getPaymentById(
+      mercadoPagoPayment.external_reference
+    );
+
+    if (!payment) {
+      console.log("Payment not found: ", JSON.stringify({ input, payment }));
+      return true;
+    }
 
     if (payment.paymentStatus !== "Pending") {
       console.log("Payment in status other than pending.");
       return true;
     }
-
-    const mercadoPagoPayment = await this.MercadoPagoService.getPayment(
-      input.id
-    );
 
     const updatedPayment = await this.PaymentRepository.updatePayment(
       payment.userId,
@@ -31,7 +46,7 @@ export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
         updatedAt: new Date().getTime(),
         paymentDetails: {
           amount: mercadoPagoPayment.transaction_amount as number,
-          code: mercadoPagoPayment.authorization_code as string,
+          code: mercadoPagoPayment.id?.toString() as string,
           id: mercadoPagoPayment.id?.toString() as string,
           updatedAt: new Date().getTime(),
         },
@@ -45,7 +60,7 @@ export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
     await Promise.all(
       updatedPayment.nfts.map(async (nft) => {
         await this.EventBridgeService.sendEvent(
-          "SendNFTToWallet_QA",
+          "SendNFTToWallet_PROD",
           "SEND_NFT",
           {
             id: updatedPayment.id,

@@ -23,10 +23,7 @@ export class PaymentSQSController {
     } catch (error) {
       const err = error as Error;
       console.error("Error sending NFT:", err.message);
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: err.message }),
-      };
+      throw new Error(err.message);
     }
   }
 }

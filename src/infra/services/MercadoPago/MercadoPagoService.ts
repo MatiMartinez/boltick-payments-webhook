@@ -32,8 +32,8 @@ export class MercadoPagoService implements IMercadoPagoService {
       response.api_response.status !== 200 ||
       !(
         response.transaction_amount &&
-        response.authorization_code &&
-        response.id
+        response.id &&
+        response.external_reference
       )
     ) {
       console.error(
