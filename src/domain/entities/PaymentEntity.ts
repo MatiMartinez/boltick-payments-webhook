@@ -10,6 +10,7 @@ export interface PaymentEntity {
   updatedAt: number;
   userId: string;
   walletPublicKey: string;
+  prName: string;
 }
 
 export interface NFT {
