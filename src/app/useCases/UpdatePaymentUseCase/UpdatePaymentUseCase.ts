@@ -16,7 +16,11 @@ export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
       input.data.id
     );
 
-    if (!mercadoPagoPayment || !mercadoPagoPayment.external_reference) {
+    if (
+      !mercadoPagoPayment ||
+      !mercadoPagoPayment.external_reference ||
+      mercadoPagoPayment.status !== "approved"
+    ) {
       console.log(
         "Mercado Pago payment not found: ",
         JSON.stringify({ input, mercadoPagoPayment })
