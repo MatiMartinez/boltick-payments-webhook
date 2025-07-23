@@ -19,7 +19,8 @@ export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
     if (
       !mercadoPagoPayment ||
       !mercadoPagoPayment.external_reference ||
-      mercadoPagoPayment.status !== "approved"
+      mercadoPagoPayment.status !== "approved" ||
+      !mercadoPagoPayment.live_mode
     ) {
       console.log(
         "Mercado Pago payment not found: ",
