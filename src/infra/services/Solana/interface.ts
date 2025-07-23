@@ -10,8 +10,8 @@ export interface NFT {
   name: string;
   symbol: string;
   description: string;
-  image: string;
-  external_url: string;
+  imageUrl: string;
+  externalUrl: string;
 }
 
 export interface Token {
@@ -19,6 +19,6 @@ export interface Token {
   name: string;
   symbol: string;
   description: string;
-  image: string;
-  external_url: string;
+  imageUrl: string;
+  externalUrl: string;
 }

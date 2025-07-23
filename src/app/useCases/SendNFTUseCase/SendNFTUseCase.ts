@@ -57,7 +57,7 @@ export class SendNFTUseCase implements ISendNFTUseCase {
     const mintedToken = await this.SolanaService.mintNFT(
       payment.walletPublicKey,
       nftMetadata,
-      "HtpBxJRw7cXBUwkgvYNLLZsWGuoxAR98f3CcrYiX8iCP"
+      ""
     );
 
     const newArr = [...payment.nfts];
@@ -83,14 +83,12 @@ export class SendNFTUseCase implements ISendNFTUseCase {
     ticketNumber: string,
     metadataUrl: string
   ) {
-    const image = this.chooseImage(nft.type);
-
     return {
-      name: `${nft.collectionName}`,
+      name: nft.collectionName,
       symbol: nft.collectionSymbol,
       description: `Ticket digital para ${nft.collectionName}. Número: ${ticketNumber}. Tipo: ${nft.type}.`,
-      image: image,
-      external_url: metadataUrl,
+      imageUrl: nft.imageUrl,
+      externalUrl: metadataUrl,
     };
   }
 
@@ -102,34 +100,29 @@ export class SendNFTUseCase implements ISendNFTUseCase {
     const bucket = "boltick-nft-metadata";
     const fileName = `nfts/${uuid()}.json`;
 
-    const image = this.chooseImage(nft.type);
-
-    // Metadata completa para S3 (backup/referencia)
     const fullMetadata = {
-      // Información del NFT
-      name: `${nft.collectionName} - ${ticketNumber}`,
-      symbol: nft.collectionSymbol,
-      description: `Ticket digital para ${nft.collectionName}. Número: ${ticketNumber}. Tipo: ${nft.type}.`,
-      image: image,
-
-      // Información del pago
       payment: {
         id: payment.id,
-        userId: payment.userId,
         eventId: payment.eventId,
+        eventName: payment.eventName,
+        prName: payment.prName,
+        userId: payment.userId,
+        walletPublicKey: payment.walletPublicKey,
       },
 
-      // Información del NFT/ticket
       nft: {
         id: nft.id,
         collectionName: nft.collectionName,
         collectionSymbol: nft.collectionSymbol,
+        description: `Ticket digital para ${nft.collectionName}. Número: ${ticketNumber}. Tipo: ${nft.type}.`,
+        imageUrl: nft.imageUrl,
+        name: nft.collectionName,
+        symbol: nft.collectionSymbol,
         ticketNumber: ticketNumber,
         type: nft.type,
         unitPrice: nft.unitPrice,
       },
 
-      // Metadatos adicionales
       createdAt: new Date().getTime(),
       used: 0,
       useDate: 0,
@@ -137,17 +130,7 @@ export class SendNFTUseCase implements ISendNFTUseCase {
 
     await this.S3Service.uploadFile(bucket, fileName, fullMetadata);
 
-    // Retornar URL pública para external_url
     return `https://${bucket}.s3.amazonaws.com/${fileName}`;
-  }
-
-  private chooseImage(type: string): string {
-    const images: Record<string, string> = {
-      General: "https://d1p1oqc35oee7y.cloudfront.net/paax/general.png",
-      VIP: "https://d1p1oqc35oee7y.cloudfront.net/paax/vip.png",
-    };
-
-    return images[type] || "";
   }
 
   private generateTicketId(companyPrefix: string, eventNumber: number): string {

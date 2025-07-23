@@ -9,6 +9,7 @@ const NFTSchema = new dynamoose.Schema({
   id: { type: String, required: true },
   collectionName: { type: String, required: true },
   collectionSymbol: { type: String, required: true },
+  imageUrl: { type: String, required: true },
   metadataUrl: { type: String, required: true },
   mint: { type: String, required: true },
   mintDate: { type: Number, required: true },
@@ -30,6 +31,7 @@ const PaymentSchema = new dynamoose.Schema({
   callbackStatus: { type: String, required: true },
   createdAt: { type: Number, required: true, rangeKey: true },
   eventId: { type: String, required: true },
+  eventName: { type: String, required: true },
   nfts: { type: Array, schema: [{ type: Object, schema: NFTSchema }] },
   paymentDetails: {
     type: Object,
@@ -37,11 +39,11 @@ const PaymentSchema = new dynamoose.Schema({
     schema: PaymentDetailsSchema,
   },
   paymentStatus: { type: String, required: true },
+  prName: { type: String, required: true },
   provider: { type: String, required: true },
   updatedAt: { type: Number, required: true },
   userId: { type: String, required: true, hashKey: true },
   walletPublicKey: { type: String, required: true },
-  prName: { type: String, required: true },
 });
 
 const tableName = `PAYMENTS_${process.env.ENV}`;

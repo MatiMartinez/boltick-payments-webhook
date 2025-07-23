@@ -3,20 +3,22 @@ export interface PaymentEntity {
   callbackStatus: Status;
   createdAt: number;
   eventId: string;
+  eventName: string;
   nfts: NFT[];
   paymentDetails?: PaymentDetails;
   paymentStatus: Status;
+  prName: string;
   provider: Provider;
   updatedAt: number;
   userId: string;
   walletPublicKey: string;
-  prName: string;
 }
 
 export interface NFT {
   id: string;
   collectionName: string;
   collectionSymbol: string;
+  imageUrl: string;
   metadataUrl: string;
   mint: string;
   mintDate: number;

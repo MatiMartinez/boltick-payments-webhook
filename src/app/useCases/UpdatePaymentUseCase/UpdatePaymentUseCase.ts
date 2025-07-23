@@ -60,7 +60,7 @@ export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
     await Promise.all(
       updatedPayment.nfts.map(async (nft) => {
         await this.EventBridgeService.sendEvent(
-          "SendNFTToWallet_PROD",
+          `SendNFTToWallet_${process.env.ENV}`,
           "SEND_NFT",
           {
             id: updatedPayment.id,

@@ -31,8 +31,8 @@ export class SolanaService implements ISolanaService {
         name: nft.name,
         symbol: nft.symbol,
         description: nft.description,
-        imageUrl: nft.image,
-        externalUrl: nft.external_url,
+        imageUrl: nft.imageUrl,
+        externalUrl: nft.externalUrl,
         owner: userAddress,
         delegate: userAddress,
         collection: "",
@@ -74,8 +74,8 @@ export class SolanaService implements ISolanaService {
         name: nft.name,
         symbol: nft.symbol,
         description: nft.description,
-        image: nft.image,
-        external_url: nft.external_url,
+        imageUrl: nft.imageUrl,
+        externalUrl: nft.externalUrl,
       };
     } catch (error) {
       const err = error as Error;
