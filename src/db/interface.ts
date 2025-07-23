@@ -10,6 +10,7 @@ export interface Event {
   edition: number;
   image: string;
   location: string;
+  locationLink: string;
   name: string;
   prs: PR[];
   tickets: Ticket[];
@@ -32,6 +33,7 @@ interface PR {
 interface Ticket {
   id: string;
   description: string;
+  imageUrl: string;
   name: string;
   price: number;
   priceWithoutTax: number;

@@ -1,12 +1,14 @@
-import { PaymentEntity, Status } from "@domain/entities/PaymentEntity";
+import { Status } from "@domain/entities/PaymentEntity";
 import { IUpdatePaymentUseCase, MercadopagoWebhookInput } from "./interface";
 import { MercadoPagoService } from "@services/MercadoPago/MercadoPagoService";
 import { EventBridgeService } from "@services/EventBridge/EventBridgeService";
 import { IPaymentRepository } from "@domain/repositories/PaymentRepository";
+import { ITicketCountRepository } from "@domain/repositories/TicketCountRepository";
 
 export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
   constructor(
     private PaymentRepository: IPaymentRepository,
+    private TicketCountRepository: ITicketCountRepository,
     private MercadoPagoService: MercadoPagoService,
     private EventBridgeService: EventBridgeService
   ) {}
@@ -61,6 +63,11 @@ export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
     if (updatedPayment.paymentStatus !== "Approved") {
       return true;
     }
+
+    await this.TicketCountRepository.incrementCountByEventId(
+      updatedPayment.eventId,
+      updatedPayment.nfts.length
+    );
 
     await Promise.all(
       updatedPayment.nfts.map(async (nft) => {

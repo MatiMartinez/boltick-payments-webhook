@@ -7,6 +7,7 @@ import { SendNFTUseCase } from "@useCases/SendNFTUseCase/SendNFTUseCase";
 import { UpdatePaymentUseCase } from "@useCases/UpdatePaymentUseCase/UpdatePaymentUseCase";
 import { PaymentAPIController } from "@controllers/PaymentAPIController";
 import { PaymentSQSController } from "@controllers/PaymentSQSController";
+import { TicketCountDynamoRepository } from "@repositories/TicketCountDynamoRepository";
 
 export class Container {
   private static instance: Container;
@@ -16,6 +17,7 @@ export class Container {
   private S3Service: S3Service;
   private SolanaService: SolanaService;
   private PaymentRepository: PaymentDynamoRepository;
+  private TicketCountRepository: TicketCountDynamoRepository;
   private SendNFTUseCase: SendNFTUseCase;
   private UpdatePaymentUseCase: UpdatePaymentUseCase;
   private PaymentAPIController: PaymentAPIController;
@@ -40,6 +42,7 @@ export class Container {
     this.S3Service = new S3Service();
     this.SolanaService = new SolanaService(apiKey);
     this.PaymentRepository = new PaymentDynamoRepository();
+    this.TicketCountRepository = new TicketCountDynamoRepository();
     this.SendNFTUseCase = new SendNFTUseCase(
       this.PaymentRepository,
       this.S3Service,
@@ -47,6 +50,7 @@ export class Container {
     );
     this.UpdatePaymentUseCase = new UpdatePaymentUseCase(
       this.PaymentRepository,
+      this.TicketCountRepository,
       this.MercadoPagoService,
       this.EventBridgeService
     );

@@ -14,6 +14,7 @@ export const events: Event[] = [
     edition: 1,
     image: "/wine-activity-1.webp",
     location: "Centro de congreso y exposiciones Francisco",
+    locationLink: "https://maps.app.goo.gl/y3SvdpuJysCQcZyv9",
     name: "Wine Activity",
     prs: [
       {
@@ -125,14 +126,13 @@ export const events: Event[] = [
     tickets: [
       {
         id: "d98c69a9-79f7-432c-a4f2-5e1e4bbd2cf5",
+        description: "Copa de degustación + Entrada",
         name: "General",
-        description: "Incluye copa de vino",
-        // price: 17250,
-        // tax: 2250,
-        // priceWithoutTax: 15000,
-        price: 172.5,
-        tax: 22.5,
-        priceWithoutTax: 150.0,
+        price: 17250,
+        priceWithoutTax: 15000,
+        tax: 2250,
+        imageUrl:
+          "https://d1ohydrg88i5oe.cloudfront.net/nft-images/wine-activity-1.png",
       },
     ],
     time: "19:00 hs - 02:00 hs",
