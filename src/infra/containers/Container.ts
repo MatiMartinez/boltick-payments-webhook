@@ -3,6 +3,7 @@ import { MercadoPagoService } from "@services/MercadoPago/MercadoPagoService";
 import { S3Service } from "@services/S3/S3Service";
 import { SolanaService } from "@services/Solana/SolanaService";
 import { PaymentDynamoRepository } from "@repositories/PaymentDynamoRepository";
+import { TicketDynamoRepository } from "@repositories/TicketDynamoRepository";
 import { SendNFTUseCase } from "@useCases/SendNFTUseCase/SendNFTUseCase";
 import { UpdatePaymentUseCase } from "@useCases/UpdatePaymentUseCase/UpdatePaymentUseCase";
 import { PaymentAPIController } from "@controllers/PaymentAPIController";
@@ -18,6 +19,7 @@ export class Container {
   private SolanaService: SolanaService;
   private PaymentRepository: PaymentDynamoRepository;
   private TicketCountRepository: TicketCountDynamoRepository;
+  private TicketRepository: TicketDynamoRepository;
   private SendNFTUseCase: SendNFTUseCase;
   private UpdatePaymentUseCase: UpdatePaymentUseCase;
   private PaymentAPIController: PaymentAPIController;
@@ -28,9 +30,7 @@ export class Container {
     const apiKey = process.env.SOLANA_API_KEY as string;
 
     if (!accessToken) {
-      throw new Error(
-        "MERCADOPAGO_ACCESS_TOKEN environment variable is required"
-      );
+      throw new Error("MERCADOPAGO_ACCESS_TOKEN environment variable is required");
     }
 
     if (!apiKey) {
@@ -43,20 +43,15 @@ export class Container {
     this.SolanaService = new SolanaService(apiKey);
     this.PaymentRepository = new PaymentDynamoRepository();
     this.TicketCountRepository = new TicketCountDynamoRepository();
-    this.SendNFTUseCase = new SendNFTUseCase(
-      this.PaymentRepository,
-      this.S3Service,
-      this.SolanaService
-    );
+    this.TicketRepository = new TicketDynamoRepository();
+    this.SendNFTUseCase = new SendNFTUseCase(this.PaymentRepository, this.TicketRepository, this.S3Service, this.SolanaService);
     this.UpdatePaymentUseCase = new UpdatePaymentUseCase(
       this.PaymentRepository,
       this.TicketCountRepository,
       this.MercadoPagoService,
       this.EventBridgeService
     );
-    this.PaymentAPIController = new PaymentAPIController(
-      this.UpdatePaymentUseCase
-    );
+    this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase);
     this.PaymentSQSController = new PaymentSQSController(this.SendNFTUseCase);
   }
 
