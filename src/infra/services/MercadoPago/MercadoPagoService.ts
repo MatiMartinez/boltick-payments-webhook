@@ -9,37 +9,22 @@ export class MercadoPagoService implements IMercadoPagoService {
 
   constructor(accessToken: string) {
     if (!accessToken) {
-      throw new Error(
-        "Missing required configurations for MercadoPagoService."
-      );
+      throw new Error("Missing required configurations for MercadoPagoService.");
     }
 
     this.client = new MercadoPagoConfig({ accessToken });
   }
 
   async getPayment(id: string) {
-    if (!this.isProd) return paymentMock;
+    if (!this.isProd) return { ...paymentMock, external_reference: id, live_mode: false };
 
     const payment = new Payment(this.client);
     const response = await payment.get({ id });
 
-    console.log(
-      `Mercadopago response from order ${id}: `,
-      JSON.stringify(response, null, 2)
-    );
+    console.log(`Mercadopago response from order ${id}: `, JSON.stringify(response, null, 2));
 
-    if (
-      response.api_response.status !== 200 ||
-      !(
-        response.transaction_amount &&
-        response.id &&
-        response.external_reference
-      )
-    ) {
-      console.error(
-        "Error looking for payment.",
-        JSON.stringify(response, null, 2)
-      );
+    if (response.api_response.status !== 200 || !(response.transaction_amount && response.id && response.external_reference)) {
+      console.error("Error looking for payment.", JSON.stringify(response, null, 2));
       throw new Error("Error looking for payment.");
     }
 
