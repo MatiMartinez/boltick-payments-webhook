@@ -15,4 +15,8 @@ export class TicketDynamoRepository implements ITicketRepository {
       return null;
     }
   }
+
+  async update(ticket: TicketEntity): Promise<void> {
+    await TicketModel.update({ walletAddress: ticket.walletAddress, createdAt: ticket.createdAt }, ticket);
+  }
 }

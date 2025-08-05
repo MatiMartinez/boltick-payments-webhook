@@ -2,13 +2,21 @@ import { EventBridgeService } from "@services/EventBridge/EventBridgeService";
 import { MercadoPagoService } from "@services/MercadoPago/MercadoPagoService";
 import { S3Service } from "@services/S3/S3Service";
 import { SolanaService } from "@services/Solana/SolanaService";
+import { IJWTService } from "@services/JWT/interface";
+import { JWTService } from "@services/JWT/JWTService";
+
 import { PaymentDynamoRepository } from "@repositories/PaymentDynamoRepository";
+import { TicketCountDynamoRepository } from "@repositories/TicketCountDynamoRepository";
+import { ITicketRepository } from "@domain/repositories/TicketRepository";
 import { TicketDynamoRepository } from "@repositories/TicketDynamoRepository";
+
 import { SendNFTUseCase } from "@useCases/SendNFTUseCase/SendNFTUseCase";
 import { UpdatePaymentUseCase } from "@useCases/UpdatePaymentUseCase/UpdatePaymentUseCase";
+import { IValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/interface";
+import { ValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/ValidateEntryUseCase";
 import { PaymentAPIController } from "@controllers/PaymentAPIController";
 import { PaymentSQSController } from "@controllers/PaymentSQSController";
-import { TicketCountDynamoRepository } from "@repositories/TicketCountDynamoRepository";
+import { TicketController } from "@controllers/TicketController";
 
 export class Container {
   private static instance: Container;
@@ -17,30 +25,39 @@ export class Container {
   private MercadoPagoService: MercadoPagoService;
   private S3Service: S3Service;
   private SolanaService: SolanaService;
+  private jwtService: IJWTService;
+
   private PaymentRepository: PaymentDynamoRepository;
   private TicketCountRepository: TicketCountDynamoRepository;
-  private TicketRepository: TicketDynamoRepository;
+  private TicketRepository: ITicketRepository;
+
   private SendNFTUseCase: SendNFTUseCase;
   private UpdatePaymentUseCase: UpdatePaymentUseCase;
+  private ValidateEntryUseCase: IValidateEntryUseCase;
   private PaymentAPIController: PaymentAPIController;
   private PaymentSQSController: PaymentSQSController;
+  private TicketController: TicketController;
 
   private constructor() {
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN as string;
     const apiKey = process.env.SOLANA_API_KEY as string;
+    const jwtSecret = process.env.JWT_SECRET as string;
 
     if (!accessToken) {
       throw new Error("MERCADOPAGO_ACCESS_TOKEN environment variable is required");
     }
-
     if (!apiKey) {
       throw new Error("SOLANA_API_KEY environment variable is required");
+    }
+    if (!jwtSecret) {
+      throw new Error("JWT_SECRET environment variable is required");
     }
 
     this.EventBridgeService = new EventBridgeService();
     this.MercadoPagoService = new MercadoPagoService(accessToken);
     this.S3Service = new S3Service();
     this.SolanaService = new SolanaService(apiKey);
+    this.jwtService = new JWTService(jwtSecret);
     this.PaymentRepository = new PaymentDynamoRepository();
     this.TicketCountRepository = new TicketCountDynamoRepository();
     this.TicketRepository = new TicketDynamoRepository();
@@ -51,8 +68,10 @@ export class Container {
       this.MercadoPagoService,
       this.EventBridgeService
     );
+    this.ValidateEntryUseCase = new ValidateEntryUseCase(this.TicketRepository, this.jwtService);
     this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase);
     this.PaymentSQSController = new PaymentSQSController(this.SendNFTUseCase);
+    this.TicketController = new TicketController(this.ValidateEntryUseCase);
   }
 
   public static getInstance(): Container {
@@ -68,5 +87,9 @@ export class Container {
 
   public getPaymentSQSController(): PaymentSQSController {
     return this.PaymentSQSController;
+  }
+
+  public getTicketController(): TicketController {
+    return this.TicketController;
   }
 }
