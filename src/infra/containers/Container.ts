@@ -68,7 +68,7 @@ export class Container {
       this.MercadoPagoService,
       this.EventBridgeService
     );
-    this.ValidateEntryUseCase = new ValidateEntryUseCase(this.TicketRepository, this.jwtService);
+    this.ValidateEntryUseCase = new ValidateEntryUseCase(this.TicketRepository, this.jwtService, this.S3Service);
     this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase);
     this.PaymentSQSController = new PaymentSQSController(this.SendNFTUseCase);
     this.TicketController = new TicketController(this.ValidateEntryUseCase);

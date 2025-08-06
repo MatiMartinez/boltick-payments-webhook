@@ -9,7 +9,12 @@ export class JWTService implements IJWTService {
     this.secretKey = secretKey;
   }
 
-  verifyToken(token: string): any {
-    return jwt.verify(token, this.secretKey);
+  verifyToken(token: string) {
+    try {
+      return jwt.verify(token, this.secretKey);
+    } catch (error) {
+      console.error("[JWTService.verifyToken] Error verifying token:", error);
+      return null;
+    }
   }
 }

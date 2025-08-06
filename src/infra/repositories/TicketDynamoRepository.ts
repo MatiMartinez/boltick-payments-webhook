@@ -4,7 +4,12 @@ import { ITicketRepository } from "@domain/repositories/TicketRepository";
 
 export class TicketDynamoRepository implements ITicketRepository {
   async save(ticket: TicketEntity): Promise<void> {
-    await TicketModel.create(ticket);
+    try {
+      await TicketModel.create(ticket);
+    } catch (error) {
+      console.error("[TicketDynamoRepository.save] Error saving ticket:", error);
+      throw error;
+    }
   }
 
   async findByTicketNumber(ticketNumber: string): Promise<TicketEntity | null> {
@@ -12,11 +17,18 @@ export class TicketDynamoRepository implements ITicketRepository {
       const response = await TicketModel.query("ticketNumber").eq(ticketNumber).using("ticketNumberIndex").exec();
       return (response[0] as unknown as TicketEntity) || null;
     } catch (error) {
-      return null;
+      console.error("[TicketDynamoRepository.findByTicketNumber] Error looking for ticket:", error);
+      throw error;
     }
   }
 
   async update(ticket: TicketEntity): Promise<void> {
-    await TicketModel.update({ walletAddress: ticket.walletAddress, createdAt: ticket.createdAt }, ticket);
+    try {
+      const { walletAddress, createdAt, ...rest } = ticket;
+      await TicketModel.update({ walletAddress, createdAt }, rest);
+    } catch (error) {
+      console.error("[TicketDynamoRepository.update] Error updating ticket:", error);
+      throw error;
+    }
   }
 }
