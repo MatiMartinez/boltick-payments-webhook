@@ -1,12 +1,10 @@
 import { IValidateEntryUseCase, IValidateEntryUseCaseInput, IValidateEntryUseCaseOutput } from "./interface";
 import { ITicketRepository } from "@domain/repositories/TicketRepository";
-import { IJWTService } from "@services/JWT/interface";
 import { IS3Service } from "@services/S3/interface";
 
 export class ValidateEntryUseCase implements IValidateEntryUseCase {
   constructor(
     private ticketRepository: ITicketRepository,
-    private jwtService: IJWTService,
     private s3Service: IS3Service
   ) {}
 
@@ -15,9 +13,9 @@ export class ValidateEntryUseCase implements IValidateEntryUseCase {
       return { result: 0, message: "Token no proporcionado" };
     }
 
-    const decoded = this.jwtService.verifyToken(input.token);
+    const decoded = this.decodedToken(input.token);
 
-    if (!decoded || !decoded.ticketNumber) {
+    if (!decoded || !decoded.ticketNumber || !decoded.entryCode || decoded.entryCodeExpiresAt < Date.now()) {
       return { result: 0, message: "Token inválido o expirado" };
     }
 
@@ -37,6 +35,8 @@ export class ValidateEntryUseCase implements IValidateEntryUseCase {
       ...ticket,
       used: 1,
       useDate: now,
+      entryCode: "",
+      entryCodeExpiresAt: 0,
     };
 
     await this.ticketRepository.update(updatedTicket);
@@ -66,5 +66,10 @@ export class ValidateEntryUseCase implements IValidateEntryUseCase {
     const fileKey = urlParts.slice(1).join("/");
 
     return { bucket, fileKey };
+  }
+
+  private decodedToken(value: string): { ticketNumber: string; entryCode: string; entryCodeExpiresAt: number } {
+    const [ticketNumber, entryCode, entryCodeExpiresAt] = value.split(":");
+    return { ticketNumber, entryCode, entryCodeExpiresAt: Number(entryCodeExpiresAt) };
   }
 }

@@ -2,8 +2,6 @@ import { EventBridgeService } from "@services/EventBridge/EventBridgeService";
 import { MercadoPagoService } from "@services/MercadoPago/MercadoPagoService";
 import { S3Service } from "@services/S3/S3Service";
 import { SolanaService } from "@services/Solana/SolanaService";
-import { IJWTService } from "@services/JWT/interface";
-import { JWTService } from "@services/JWT/JWTService";
 
 import { PaymentDynamoRepository } from "@repositories/PaymentDynamoRepository";
 import { TicketCountDynamoRepository } from "@repositories/TicketCountDynamoRepository";
@@ -25,7 +23,6 @@ export class Container {
   private MercadoPagoService: MercadoPagoService;
   private S3Service: S3Service;
   private SolanaService: SolanaService;
-  private jwtService: IJWTService;
 
   private PaymentRepository: PaymentDynamoRepository;
   private TicketCountRepository: TicketCountDynamoRepository;
@@ -49,15 +46,11 @@ export class Container {
     if (!apiKey) {
       throw new Error("SOLANA_API_KEY environment variable is required");
     }
-    if (!jwtSecret) {
-      throw new Error("JWT_SECRET environment variable is required");
-    }
 
     this.EventBridgeService = new EventBridgeService();
     this.MercadoPagoService = new MercadoPagoService(accessToken);
     this.S3Service = new S3Service();
     this.SolanaService = new SolanaService(apiKey);
-    this.jwtService = new JWTService(jwtSecret);
     this.PaymentRepository = new PaymentDynamoRepository();
     this.TicketCountRepository = new TicketCountDynamoRepository();
     this.TicketRepository = new TicketDynamoRepository();
@@ -68,7 +61,7 @@ export class Container {
       this.MercadoPagoService,
       this.EventBridgeService
     );
-    this.ValidateEntryUseCase = new ValidateEntryUseCase(this.TicketRepository, this.jwtService, this.S3Service);
+    this.ValidateEntryUseCase = new ValidateEntryUseCase(this.TicketRepository, this.S3Service);
     this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase);
     this.PaymentSQSController = new PaymentSQSController(this.SendNFTUseCase);
     this.TicketController = new TicketController(this.ValidateEntryUseCase);

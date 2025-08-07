@@ -17,4 +17,7 @@ export interface TicketEntity {
   createdAt: number;
   used: number;
   useDate: number;
+
+  entryCode: string;
+  entryCodeExpiresAt: number;
 }

@@ -24,6 +24,9 @@ const TicketSchema = new dynamoose.Schema({
   createdAt: { type: Number, required: true, rangeKey: true },
   used: { type: Number, required: true },
   useDate: { type: Number, required: true },
+
+  entryCode: { type: String, required: true },
+  entryCodeExpiresAt: { type: Number, required: true },
 });
 
 const tableName = `TICKETS_${process.env.ENV}`;

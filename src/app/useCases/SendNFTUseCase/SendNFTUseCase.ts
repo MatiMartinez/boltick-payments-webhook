@@ -153,6 +153,9 @@ export class SendNFTUseCase implements ISendNFTUseCase {
       createdAt: new Date().getTime(),
       used: 0,
       useDate: 0,
+
+      entryCode: "",
+      entryCodeExpiresAt: 0,
     };
 
     await this.TicketRepository.save(ticketEntity);
