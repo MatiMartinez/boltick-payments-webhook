@@ -15,11 +15,7 @@ export class SolanaService implements ISolanaService {
     }
   }
 
-  async mintNFT(
-    userAddress: string,
-    nft: NFT,
-    _collectionName: string
-  ): Promise<Token> {
+  async mintNFT(userAddress: string, nft: NFT, _collectionName: string): Promise<Token> {
     try {
       console.log(`Minting cNFT: ${nft.name} to ${userAddress}`);
 
@@ -48,10 +44,7 @@ export class SolanaService implements ISolanaService {
 
       console.log("Calling Helius with params:", mintParams);
 
-      const response = await this.callHeliusRPC(
-        "mintCompressedNft",
-        mintParams
-      );
+      const response = await this.callHeliusRPC("mintCompressedNft", mintParams);
 
       if (response.error) {
         throw new Error(`Helius RPC Error: ${response.error.message}`);
@@ -60,9 +53,7 @@ export class SolanaService implements ISolanaService {
       const result = response.result;
 
       if (!result.minted || !result.assetId) {
-        throw new Error(
-          `Mint failed. Minted: ${result.minted}, AssetId: ${result.assetId}, Signature: ${result.signature}`
-        );
+        throw new Error(`Mint failed. Minted: ${result.minted}, AssetId: ${result.assetId}, Signature: ${result.signature}`);
       }
 
       console.log("cNFT minted successfully!");
@@ -109,9 +100,7 @@ export class SolanaService implements ISolanaService {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Response error:", errorText);
-        throw new Error(
-          `HTTP ${response.status}: ${response.statusText} - ${errorText}`
-        );
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json();

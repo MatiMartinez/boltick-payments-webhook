@@ -1,6 +1,5 @@
 import { MercadoPagoConfig, Payment } from "mercadopago";
 import { PaymentResponse } from "mercadopago/dist/clients/payment/commonTypes";
-
 import { IMercadoPagoService } from "./interface";
 
 export class MercadoPagoService implements IMercadoPagoService {

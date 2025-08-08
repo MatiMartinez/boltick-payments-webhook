@@ -1,6 +1,5 @@
 import * as dynamoose from "dynamoose";
 import { Item } from "dynamoose/dist/Item";
-
 import { TicketEntity } from "@domain/entities/TicketEntity";
 
 interface TicketDocument extends TicketEntity, Item {}

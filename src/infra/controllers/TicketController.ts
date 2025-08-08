@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-
 import { IValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/interface";
 
 export class TicketController {

@@ -1,5 +1,4 @@
 import { v4 as uuid } from "uuid";
-
 import { NFT, PaymentEntity } from "@domain/entities/PaymentEntity";
 import { TicketEntity } from "@domain/entities/TicketEntity";
 import { ISendNFTUseCase, SendNFTInput } from "./interface";

@@ -1,4 +1,4 @@
-export interface TicketCount {
+export interface TicketCountEntity {
   eventId: string;
   count: number;
 }

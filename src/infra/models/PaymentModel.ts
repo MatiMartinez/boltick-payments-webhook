@@ -1,6 +1,5 @@
 import * as dynamoose from "dynamoose";
 import { Item } from "dynamoose/dist/Item";
-
 import { PaymentEntity } from "@domain/entities/PaymentEntity";
 
 interface PaymentDocument extends PaymentEntity, Item {}
@@ -48,8 +47,4 @@ const PaymentSchema = new dynamoose.Schema({
 
 const tableName = `PAYMENTS_${process.env.ENV}`;
 
-export const PaymentModel = dynamoose.model<PaymentDocument>(
-  tableName,
-  PaymentSchema,
-  { throughput: "ON_DEMAND" }
-);
+export const PaymentModel = dynamoose.model<PaymentDocument>(tableName, PaymentSchema, { throughput: "ON_DEMAND" });

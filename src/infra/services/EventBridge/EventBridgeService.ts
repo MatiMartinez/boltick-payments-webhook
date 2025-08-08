@@ -1,8 +1,4 @@
-import {
-  EventBridgeClient,
-  PutEventsCommand,
-} from "@aws-sdk/client-eventbridge";
-
+import { EventBridgeClient, PutEventsCommand } from "@aws-sdk/client-eventbridge";
 import { IEventBridgeService } from "./interface";
 
 export class EventBridgeService implements IEventBridgeService {
@@ -12,11 +8,7 @@ export class EventBridgeService implements IEventBridgeService {
     this.EventBridgeClient = new EventBridgeClient({ region: "us-east-1" });
   }
 
-  async sendEvent(
-    source: string,
-    detailType: string,
-    detail: Record<string, any>
-  ) {
+  async sendEvent(source: string, detailType: string, detail: Record<string, any>) {
     try {
       const params = {
         Entries: [
@@ -28,9 +20,7 @@ export class EventBridgeService implements IEventBridgeService {
         ],
       };
 
-      const response = await this.EventBridgeClient.send(
-        new PutEventsCommand(params)
-      );
+      const response = await this.EventBridgeClient.send(new PutEventsCommand(params));
 
       if (response.FailedEntryCount && response.FailedEntryCount > 0) {
         console.log(`Event failed to send:`, response.Entries);

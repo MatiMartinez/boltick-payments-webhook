@@ -1,6 +1,5 @@
 import { APIGatewayProxyEventV2, Context, SQSEvent } from "aws-lambda";
 import serverlessExpress from "@codegenie/serverless-express";
-
 import { app } from "./server";
 import { Container } from "@containers/Container";
 
