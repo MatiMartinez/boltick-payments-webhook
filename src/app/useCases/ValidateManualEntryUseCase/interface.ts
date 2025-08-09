@@ -9,4 +9,7 @@ export interface IValidateManualEntryUseCaseInput {
 export interface IValidateManualEntryUseCaseOutput {
   result: number;
   message: string;
+  data?: {
+    ticketNumber: string;
+  };
 }

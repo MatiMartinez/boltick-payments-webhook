@@ -38,7 +38,7 @@ export class ValidateManualEntryUseCase implements IValidateManualEntryUseCase {
 
     console.log("Ticket validado manualmente:", updatedTicket.ticketNumber);
 
-    return { result: 1, message: "Ingreso validado correctamente" };
+    return { result: 1, message: "Ingreso validado correctamente", data: { ticketNumber: updatedTicket.ticketNumber } };
   }
 
   private async updateS3Metadata(metadataUrl: string, useDate: number): Promise<void> {
