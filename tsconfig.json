@@ -21,6 +21,7 @@
       "@db/*": ["src/db/*"],
       "@domain/*": ["src/domain/*"],
       "@dtos/*": ["src/app/dtos/*"],
+      "@middlewares/*": ["src/infra/middlewares/*"],
       "@models/*": ["src/infra/models/*"],
       "@repositories/*": ["src/infra/repositories/*"],
       "@routes/*": ["src/infra/routes/*"],
