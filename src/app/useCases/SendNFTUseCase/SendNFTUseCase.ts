@@ -151,7 +151,7 @@ export class SendNFTUseCase implements ISendNFTUseCase {
       collectionName: nft.collectionName,
       collectionSymbol: nft.collectionSymbol,
 
-      createdAt: new Date().getTime(),
+      createdAt: nft.mintDate,
       used: 0,
       useDate: 0,
 

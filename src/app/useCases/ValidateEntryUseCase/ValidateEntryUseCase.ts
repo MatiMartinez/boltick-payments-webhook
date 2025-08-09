@@ -10,22 +10,27 @@ export class ValidateEntryUseCase implements IValidateEntryUseCase {
 
   public async execute(input: IValidateEntryUseCaseInput): Promise<IValidateEntryUseCaseOutput> {
     if (input.token === "") {
+      console.log("Token no proporcionado: ", JSON.stringify(input));
       return { result: 0, message: "Token no proporcionado" };
     }
 
     const decoded = this.decodedToken(input.token);
 
     if (!decoded || !decoded.ticketNumber || !decoded.entryCode || decoded.entryCodeExpiresAt < Date.now()) {
+      console.log("Token inválido o expirado: ", JSON.stringify(input));
+
       return { result: 0, message: "Token inválido o expirado" };
     }
 
     const ticket = await this.ticketRepository.findByTicketNumber(decoded.ticketNumber);
 
     if (!ticket) {
+      console.log("Ticket no encontrado: ", JSON.stringify(input));
       return { result: 0, message: "Ticket no encontrado" };
     }
 
     if (ticket.used === 1) {
+      console.log("Ticket ya utilizado: ", JSON.stringify(input));
       return { result: 0, message: "Ticket ya utilizado" };
     }
 
