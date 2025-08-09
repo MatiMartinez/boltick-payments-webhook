@@ -23,6 +23,10 @@ export class ValidateManualEntryUseCase implements IValidateManualEntryUseCase {
       return { result: 0, message: "Ticket ya utilizado" };
     }
 
+    if (!ticket.entryCode || ticket.entryCodeExpiresAt < Date.now()) {
+      return { result: 0, message: "Código de entrada inválido o expirado" };
+    }
+
     const now = Date.now();
 
     const updatedTicket = {
