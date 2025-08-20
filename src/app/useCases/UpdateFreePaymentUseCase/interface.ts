@@ -1,5 +1,9 @@
 export interface IUpdateFreePaymentUseCase {
-  execute(input: string): Promise<IUpdateFreePaymentUseCaseOutput>;
+  execute(input: IUpdateFreePaymentUseCaseInput): Promise<IUpdateFreePaymentUseCaseOutput>;
+}
+
+export interface IUpdateFreePaymentUseCaseInput {
+  id: string;
 }
 
 export interface IUpdateFreePaymentUseCaseOutput {

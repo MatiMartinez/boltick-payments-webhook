@@ -1,5 +1,5 @@
 import { NFT, Status } from "@domain/entities/PaymentEntity";
-import { IUpdateFreePaymentUseCase } from "./interface";
+import { IUpdateFreePaymentUseCase, IUpdateFreePaymentUseCaseInput } from "./interface";
 import { EventBridgeService } from "@services/EventBridge/EventBridgeService";
 import { IPaymentRepository } from "@domain/repositories/PaymentRepository";
 import { ITicketCountRepository } from "@domain/repositories/TicketCountRepository";
@@ -13,8 +13,8 @@ export class UpdateFreePaymentUseCase implements IUpdateFreePaymentUseCase {
     private Logger: ILogger
   ) {}
 
-  async execute(input: string) {
-    const payment = await this.PaymentRepository.getPaymentById(input);
+  async execute(input: IUpdateFreePaymentUseCaseInput) {
+    const payment = await this.PaymentRepository.getPaymentById(input.id);
 
     if (!payment) {
       this.Logger.error("[UpdateFreePaymentUseCase] Pago no encontrado: ", JSON.stringify({ input, payment }, null, 2));
