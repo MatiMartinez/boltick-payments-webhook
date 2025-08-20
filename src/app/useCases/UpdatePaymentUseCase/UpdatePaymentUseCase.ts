@@ -55,18 +55,14 @@ export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
 
     await this.TicketCountRepository.incrementCountByEventId(updatedPayment.eventId, updatedPayment.nfts.length);
 
-    for (let i = 0; i < updatedPayment.nfts.length; i++) {
-      const nft = updatedPayment.nfts[i];
-
-      await this.EventBridgeService.sendEvent(`SendNFTToWallet_${process.env.ENV}`, "SEND_NFT", {
-        id: updatedPayment.id,
-        nftId: nft.id,
-      });
-
-      if (i < updatedPayment.nfts.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 10000));
-      }
-    }
+    await Promise.all(
+      updatedPayment.nfts.map((nft) =>
+        this.EventBridgeService.sendEvent(`SendNFTToWallet_${process.env.ENV}`, "SEND_NFT", {
+          id: updatedPayment.id,
+          nftId: nft.id,
+        })
+      )
+    );
 
     return true;
   }

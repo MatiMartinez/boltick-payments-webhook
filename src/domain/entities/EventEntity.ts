@@ -1,6 +1,7 @@
-export interface Event {
+export interface EventEntity {
   id: string;
   artists: Artist[];
+  availableTickets: number;
   category: string;
   collectionName: string;
   collectionSymbol: string;
@@ -8,11 +9,13 @@ export interface Event {
   date: string;
   description: string;
   edition: number;
+  endDate: number;
   image: string;
   location: string;
   locationLink: string;
   name: string;
   prs: PR[];
+  startDate: number;
   tickets: Ticket[];
   time: string;
 }

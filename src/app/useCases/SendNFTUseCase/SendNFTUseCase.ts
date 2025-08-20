@@ -4,50 +4,78 @@ import { TicketEntity } from "@domain/entities/TicketEntity";
 import { ISendNFTUseCase, SendNFTInput } from "./interface";
 import { S3Service } from "@services/S3/S3Service";
 import { SolanaService } from "@services/Solana/SolanaService";
-import { events } from "@db/events";
 import { IPaymentRepository } from "@domain/repositories/PaymentRepository";
 import { ITicketRepository } from "@domain/repositories/TicketRepository";
+import { IEventRepository } from "@domain/repositories/IEventRepository";
+import { ILogger } from "@commons/Logger/interface";
+import { EventEntity } from "@domain/entities/EventEntity";
 
 export class SendNFTUseCase implements ISendNFTUseCase {
   constructor(
     private PaymentRepository: IPaymentRepository,
     private TicketRepository: ITicketRepository,
+    private EventRepository: IEventRepository,
     private S3Service: S3Service,
-    private SolanaService: SolanaService
+    private SolanaService: SolanaService,
+    private Logger: ILogger
   ) {}
 
   async execute(input: SendNFTInput) {
-    const payment = await this.PaymentRepository.getPaymentById(input.id);
-    if (payment.paymentStatus !== "Approved") {
-      throw new Error("Payment is not approved.");
-    }
-
-    const currentEvent = events.find((el) => el.id === payment.eventId);
-    if (!currentEvent) {
-      throw new Error("The NFT event does not exist.");
-    }
-
-    const index = payment.nfts.findIndex((element) => element.id === input.nftId);
-    if (index === -1) {
-      throw new Error("The NFT does not exist.");
-    }
-
-    const currentNft = payment.nfts[index];
-    if (currentNft.mint) {
-      throw new Error("The NFT has already been minted.");
-    }
+    const payment = await this.validatePayment(input);
+    const event = await this.validateEvent(payment.eventId);
+    const dbNFT = this.findNFT(payment, input.nftId);
 
     const now = new Date().getTime();
 
-    const ticketNumber = this.generateTicketId(currentNft.collectionSymbol, currentEvent.edition);
-    const metadataUrl = await this.uploadMetadata(currentNft, payment, ticketNumber, now);
+    const ticketNumber = this.generateTicketId(dbNFT.collectionSymbol, event.edition);
+    const metadataUrl = await this.uploadMetadata(dbNFT, payment, ticketNumber, now);
 
-    const nftMetadata = this.generateNFTMetadata(currentNft, ticketNumber, metadataUrl);
+    const nftMetadata = this.generateNFTMetadata(dbNFT, ticketNumber, metadataUrl);
     const mintedToken = await this.SolanaService.mintNFT(payment.walletPublicKey, nftMetadata, "");
 
-    await this.updatePayment(payment, index, metadataUrl, mintedToken, now, ticketNumber);
+    await this.updatePayment(payment, dbNFT, metadataUrl, mintedToken, now, ticketNumber);
 
     return true;
+  }
+
+  private async validatePayment(input: SendNFTInput): Promise<PaymentEntity> {
+    const payment = await this.PaymentRepository.getPaymentById(input.id);
+    if (!payment) {
+      this.Logger.error("[SendNFTUseCase] No se encontró el pago: ", JSON.stringify({ input }, null, 2));
+      throw new Error("No se encontró el pago");
+    }
+
+    if (payment.paymentStatus !== "Approved") {
+      this.Logger.error("[SendNFTUseCase] Pago no aprobado: ", JSON.stringify({ input, payment }, null, 2));
+      throw new Error("Pago no aprobado");
+    }
+
+    return payment;
+  }
+
+  private async validateEvent(eventId: string): Promise<EventEntity> {
+    const event = await this.EventRepository.findById(eventId);
+    if (!event) {
+      this.Logger.error("[SendNFTUseCase] Evento no encontrado: ", JSON.stringify({ eventId }, null, 2));
+      throw new Error("El evento no existe");
+    }
+
+    return event;
+  }
+
+  private findNFT(payment: PaymentEntity, nftId: string): NFT {
+    const nft = payment.nfts.find((nft) => nft.id === nftId);
+    if (!nft) {
+      this.Logger.error("[SendNFTUseCase] NFT no encontrado: ", JSON.stringify({ payment, nftId }, null, 2));
+      throw new Error("El NFT no existe");
+    }
+
+    if (nft.mint) {
+      this.Logger.error("[SendNFTUseCase] NFT ya mintado: ", JSON.stringify({ payment, nftId }, null, 2));
+      throw new Error("El NFT ya tiene un mint");
+    }
+
+    return nft;
   }
 
   private generateTicketId(companyPrefix: string, eventNumber: number): string {
@@ -110,15 +138,15 @@ export class SendNFTUseCase implements ISendNFTUseCase {
     };
   }
 
-  private async updatePayment(
-    payment: PaymentEntity,
-    index: number,
-    metadataUrl: string,
-    mintedToken: any,
-    now: number,
-    ticketNumber: string
-  ): Promise<void> {
+  private async updatePayment(payment: PaymentEntity, dbNFT: NFT, metadataUrl: string, mintedToken: any, now: number, ticketNumber: string): Promise<void> {
     const newArr = [...payment.nfts];
+    const index = newArr.findIndex((nft) => nft.id === dbNFT.id);
+
+    if (index === -1) {
+      this.Logger.error("[SendNFTUseCase] NFT no encontrado: ", JSON.stringify({ payment, dbNFT }, null, 2));
+      throw new Error("El NFT no existe");
+    }
+
     newArr[index] = {
       ...newArr[index],
       metadataUrl: metadataUrl,
@@ -128,10 +156,8 @@ export class SendNFTUseCase implements ISendNFTUseCase {
       transactionId: payment.paymentDetails?.id ?? "",
     };
 
-    console.log("NFT to save: ", JSON.stringify(newArr[index], null, 2));
-
-    await this.PaymentRepository.updateNFT(payment.userId, payment.createdAt, { nfts: newArr, updatedAt: now });
-    await this.saveTicket(payment, newArr[index]);
+    await this.PaymentRepository.updateNFT(payment.userId, payment.createdAt, now, index, newArr[index]);
+    await this.saveTicket(payment, dbNFT);
   }
 
   private async saveTicket(payment: PaymentEntity, nft: NFT): Promise<void> {

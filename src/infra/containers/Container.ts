@@ -1,3 +1,6 @@
+import { ILogger } from "@commons/Logger/interface";
+import { Logger } from "@commons/Logger/Logger";
+
 import { EventBridgeService } from "@services/EventBridge/EventBridgeService";
 import { MercadoPagoService } from "@services/MercadoPago/MercadoPagoService";
 import { S3Service } from "@services/S3/S3Service";
@@ -7,19 +10,25 @@ import { PaymentDynamoRepository } from "@repositories/PaymentDynamoRepository";
 import { TicketCountDynamoRepository } from "@repositories/TicketCountDynamoRepository";
 import { ITicketRepository } from "@domain/repositories/TicketRepository";
 import { TicketDynamoRepository } from "@repositories/TicketDynamoRepository";
+import { IEventRepository } from "@domain/repositories/IEventRepository";
+import { EventDynamoRepository } from "@repositories/EventDynamoRepository";
 
 import { SendNFTUseCase } from "@useCases/SendNFTUseCase/SendNFTUseCase";
 import { UpdatePaymentUseCase } from "@useCases/UpdatePaymentUseCase/UpdatePaymentUseCase";
+import { UpdateFreePaymentUseCase } from "@useCases/UpdateFreePaymentUseCase/UpdateFreePaymentUseCase";
 import { IValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/interface";
 import { ValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/ValidateEntryUseCase";
 import { IValidateManualEntryUseCase } from "@useCases/ValidateManualEntryUseCase/interface";
 import { ValidateManualEntryUseCase } from "@useCases/ValidateManualEntryUseCase/ValidateManualEntryUseCase";
+
 import { PaymentAPIController } from "@controllers/PaymentAPIController";
 import { PaymentSQSController } from "@controllers/PaymentSQSController";
 import { TicketController } from "@controllers/TicketController";
 
 export class Container {
   private static instance: Container;
+
+  private Logger: ILogger;
 
   private EventBridgeService: EventBridgeService;
   private MercadoPagoService: MercadoPagoService;
@@ -29,9 +38,11 @@ export class Container {
   private PaymentRepository: PaymentDynamoRepository;
   private TicketCountRepository: TicketCountDynamoRepository;
   private TicketRepository: ITicketRepository;
+  private EventRepository: IEventRepository;
 
   private SendNFTUseCase: SendNFTUseCase;
   private UpdatePaymentUseCase: UpdatePaymentUseCase;
+  private UpdateFreePaymentUseCase: UpdateFreePaymentUseCase;
   private ValidateEntryUseCase: IValidateEntryUseCase;
   private ValidateManualEntryUseCase: IValidateManualEntryUseCase;
 
@@ -54,23 +65,32 @@ export class Container {
       throw new Error("SELF_API_KEY environment variable is required");
     }
 
+    this.Logger = Logger.getInstance();
+
     this.EventBridgeService = new EventBridgeService();
     this.MercadoPagoService = new MercadoPagoService(accessToken);
     this.S3Service = new S3Service();
     this.SolanaService = new SolanaService(apiKey);
-    this.PaymentRepository = new PaymentDynamoRepository();
+
+    this.PaymentRepository = new PaymentDynamoRepository(this.Logger);
     this.TicketCountRepository = new TicketCountDynamoRepository();
     this.TicketRepository = new TicketDynamoRepository();
-    this.SendNFTUseCase = new SendNFTUseCase(this.PaymentRepository, this.TicketRepository, this.S3Service, this.SolanaService);
-    this.UpdatePaymentUseCase = new UpdatePaymentUseCase(
+    this.EventRepository = new EventDynamoRepository(this.Logger);
+
+    this.SendNFTUseCase = new SendNFTUseCase(
       this.PaymentRepository,
-      this.TicketCountRepository,
-      this.MercadoPagoService,
-      this.EventBridgeService
+      this.TicketRepository,
+      this.EventRepository,
+      this.S3Service,
+      this.SolanaService,
+      this.Logger
     );
+    this.UpdatePaymentUseCase = new UpdatePaymentUseCase(this.PaymentRepository, this.TicketCountRepository, this.MercadoPagoService, this.EventBridgeService);
+    this.UpdateFreePaymentUseCase = new UpdateFreePaymentUseCase(this.PaymentRepository, this.TicketCountRepository, this.EventBridgeService, this.Logger);
     this.ValidateEntryUseCase = new ValidateEntryUseCase(this.TicketRepository, this.S3Service);
     this.ValidateManualEntryUseCase = new ValidateManualEntryUseCase(this.TicketRepository, this.S3Service);
-    this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase);
+
+    this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase, this.UpdateFreePaymentUseCase);
     this.PaymentSQSController = new PaymentSQSController(this.SendNFTUseCase);
     this.TicketController = new TicketController(this.ValidateEntryUseCase, this.ValidateManualEntryUseCase);
   }

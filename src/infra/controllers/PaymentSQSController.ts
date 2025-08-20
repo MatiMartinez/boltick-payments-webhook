@@ -1,11 +1,10 @@
 import { EventBridgeEvent } from "aws-lambda";
-import { SendNFTUseCase } from "@useCases/SendNFTUseCase/SendNFTUseCase";
-import { SendNFTInput } from "@useCases/SendNFTUseCase/interface";
+import { ISendNFTUseCase, SendNFTInput } from "@useCases/SendNFTUseCase/interface";
 
 type DetailTypes = "SEND_NFT";
 
 export class PaymentSQSController {
-  constructor(private SendNFTUseCase: SendNFTUseCase) {}
+  constructor(private SendNFTUseCase: ISendNFTUseCase) {}
 
   async dispatch(event: EventBridgeEvent<DetailTypes, SendNFTInput>): Promise<{ statusCode: number; body: string }> {
     try {
