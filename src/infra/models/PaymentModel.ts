@@ -42,7 +42,7 @@ const PaymentSchema = new dynamoose.Schema({
   provider: { type: String, required: true },
   updatedAt: { type: Number, required: true },
   userId: { type: String, required: true, hashKey: true },
-  walletPublicKey: { type: String, required: true },
+  walletPublicKey: { type: String, required: true, index: { name: "walletPublicKeyIndex" } },
 });
 
 const tableName = `PAYMENTS_${process.env.ENV}`;

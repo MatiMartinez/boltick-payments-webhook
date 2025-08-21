@@ -17,7 +17,7 @@ export class PaymentDynamoRepository implements IPaymentRepository {
 
   async updateNFT(userId: string, createdAt: number, updatedAt: number, index: number, toUpdate: NFT) {
     try {
-      const updatedPayment = await PaymentModel.update({ userId, createdAt }, { [`nfts.${index}`]: toUpdate, updatedAt });
+      const updatedPayment = await PaymentModel.update({ userId, createdAt }, { $SET: { [`nfts.${index}`]: toUpdate, updatedAt } });
       return updatedPayment as PaymentEntity;
     } catch (error) {
       this.logger.error("[PaymentDynamoRepository] Error al actualizar el NFT", { error: (error as Error).message });

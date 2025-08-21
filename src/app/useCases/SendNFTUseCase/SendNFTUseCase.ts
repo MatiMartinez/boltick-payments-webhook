@@ -157,7 +157,7 @@ export class SendNFTUseCase implements ISendNFTUseCase {
     };
 
     await this.PaymentRepository.updateNFT(payment.userId, payment.createdAt, now, index, newArr[index]);
-    await this.saveTicket(payment, dbNFT);
+    await this.saveTicket(payment, newArr[index]);
   }
 
   private async saveTicket(payment: PaymentEntity, nft: NFT): Promise<void> {
