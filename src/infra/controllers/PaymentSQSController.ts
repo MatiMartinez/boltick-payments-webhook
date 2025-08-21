@@ -1,16 +1,24 @@
-import { EventBridgeEvent } from "aws-lambda";
-import { ISendNFTUseCase, SendNFTInput } from "@useCases/SendNFTUseCase/interface";
+import { ILogger } from "@commons/Logger/interface";
+import { ISendNFTUseCase } from "@useCases/SendNFTUseCase/interface";
 
-type DetailTypes = "SEND_NFT";
+interface MessageBody {
+  action: Action;
+  body: any;
+}
+
+type Action = "SEND_NFT";
 
 export class PaymentSQSController {
-  constructor(private SendNFTUseCase: ISendNFTUseCase) {}
+  constructor(
+    private SendNFTUseCase: ISendNFTUseCase,
+    private Logger: ILogger
+  ) {}
 
-  async dispatch(event: EventBridgeEvent<DetailTypes, SendNFTInput>): Promise<{ statusCode: number; body: string }> {
+  async dispatch(event: MessageBody): Promise<{ statusCode: number; body: string }> {
     try {
-      switch (event["detail-type"]) {
+      switch (event.action) {
         case "SEND_NFT":
-          await this.SendNFTUseCase.execute(event.detail);
+          await this.SendNFTUseCase.execute(event.body);
           return { statusCode: 200, body: "Ok" };
 
         default:
@@ -18,8 +26,8 @@ export class PaymentSQSController {
       }
     } catch (error) {
       const err = error as Error;
-      console.error("Error sending NFT:", err.message);
-      throw new Error(err.message);
+      this.Logger.error("[PaymentSQSController] Error al enviar el mensaje a SQS:", err.message);
+      throw error;
     }
   }
 }

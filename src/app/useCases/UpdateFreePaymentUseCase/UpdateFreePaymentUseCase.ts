@@ -1,15 +1,15 @@
 import { NFT, Status } from "@domain/entities/PaymentEntity";
 import { IUpdateFreePaymentUseCase, IUpdateFreePaymentUseCaseInput } from "./interface";
-import { EventBridgeService } from "@services/EventBridge/EventBridgeService";
 import { IPaymentRepository } from "@domain/repositories/PaymentRepository";
 import { ITicketCountRepository } from "@domain/repositories/TicketCountRepository";
 import { ILogger } from "@commons/Logger/interface";
+import { ISQSService } from "@services/SQS/interface";
 
 export class UpdateFreePaymentUseCase implements IUpdateFreePaymentUseCase {
   constructor(
     private PaymentRepository: IPaymentRepository,
     private TicketCountRepository: ITicketCountRepository,
-    private EventBridgeService: EventBridgeService,
+    private SQSService: ISQSService,
     private Logger: ILogger
   ) {}
 
@@ -42,12 +42,7 @@ export class UpdateFreePaymentUseCase implements IUpdateFreePaymentUseCase {
     await this.TicketCountRepository.incrementCountByEventId(updatedPayment.eventId, updatedPayment.nfts.length);
 
     await Promise.all(
-      updatedPayment.nfts.map((nft) =>
-        this.EventBridgeService.sendEvent(`SendNFTToWallet_${process.env.ENV}`, "SEND_NFT", {
-          id: updatedPayment.id,
-          nftId: nft.id,
-        })
-      )
+      updatedPayment.nfts.map((nft) => this.SQSService.sendMessage(updatedPayment.id, { action: "SEND_NFT", body: { id: updatedPayment.id, nftId: nft.id } }))
     );
 
     return { success: true, message: "Pago actualizado correctamente" };

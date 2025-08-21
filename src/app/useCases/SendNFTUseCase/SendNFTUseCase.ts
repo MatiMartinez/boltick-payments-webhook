@@ -156,7 +156,7 @@ export class SendNFTUseCase implements ISendNFTUseCase {
       transactionId: payment.paymentDetails?.id ?? "",
     };
 
-    await this.PaymentRepository.updateNFT(payment.userId, payment.createdAt, now, index, newArr[index]);
+    await this.PaymentRepository.updateNFT(payment.userId, payment.createdAt, { nfts: newArr, updatedAt: now });
     await this.saveTicket(payment, newArr[index]);
   }
 

@@ -14,9 +14,9 @@ export const handler = async (event: SQSEvent | APIGatewayProxyEventV2, context:
   console.log("Event: ", JSON.stringify(event, null, 2));
 
   if ("Records" in event && event.Records.length > 0) {
-    const parsedRecordBody = JSON.parse(event.Records[0].body);
+    const messageBody = JSON.parse(event.Records[0].body);
     const PaymentSQSController = Container.getInstance().getPaymentSQSController();
-    return await PaymentSQSController.dispatch(parsedRecordBody);
+    return await PaymentSQSController.dispatch(messageBody);
   }
 
   if ("requestContext" in event) {
