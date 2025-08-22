@@ -1,4 +1,4 @@
-import { Status } from "@domain/entities/PaymentEntity";
+import { NFT, Status } from "@domain/entities/PaymentEntity";
 import { IUpdatePaymentUseCase, MercadopagoWebhookInput } from "./interface";
 import { MercadoPagoService } from "@services/MercadoPago/MercadoPagoService";
 import { IPaymentRepository } from "@domain/repositories/PaymentRepository";
@@ -55,7 +55,7 @@ export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
       return true;
     }
 
-    await this.TicketCountRepository.incrementCountByEventId(updatedPayment.eventId, updatedPayment.nfts.length);
+    await this.updateTicketCount(updatedPayment.eventId, updatedPayment.nfts);
 
     await Promise.all(
       updatedPayment.nfts.map((nft) => this.SQSService.sendMessage(updatedPayment.id, { action: "SEND_NFT", body: { id: updatedPayment.id, nftId: nft.id } }))
@@ -70,5 +70,24 @@ export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
     if (mercadopago_status === "in_process") return "Pending";
     if (mercadopago_status === "pending") return "Pending";
     return "Pending";
+  }
+
+  private async updateTicketCount(eventId: string, nfts: NFT[]) {
+    const ticketCount = await this.TicketCountRepository.getTicketCount(eventId);
+
+    // Crear un mapa de la cantidad de NFTs por tipo
+    const nftCountByType = new Map<string, number>();
+    nfts.forEach((nft) => {
+      const currentCount = nftCountByType.get(nft.type) || 0;
+      nftCountByType.set(nft.type, currentCount + 1);
+    });
+
+    // Actualizar el contador sumando la cantidad real de NFTs comprados por tipo
+    const newCount = ticketCount.count.map((count) => {
+      const nftCount = nftCountByType.get(count.type) || 0;
+      return { type: count.type, count: count.count + nftCount };
+    });
+
+    await this.TicketCountRepository.updateTicketCount(eventId, newCount);
   }
 }

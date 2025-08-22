@@ -19,6 +19,7 @@ const PRSchema = new dynamoose.Schema({
 
 const TicketSchema = new dynamoose.Schema({
   id: { type: String, required: true },
+  availableTickets: { type: Number, required: true },
   description: { type: String, required: true },
   imageUrl: { type: String, required: true },
   name: { type: String, required: true },
@@ -30,7 +31,6 @@ const TicketSchema = new dynamoose.Schema({
 const EventSchema = new dynamoose.Schema({
   id: { type: String, required: true, hashKey: true },
   artists: { type: Array, schema: [{ type: Object, schema: ArtistSchema }] },
-  availableTickets: { type: Number, required: true },
   category: { type: String, required: true },
   collectionName: { type: String, required: true },
   collectionSymbol: { type: String, required: true },

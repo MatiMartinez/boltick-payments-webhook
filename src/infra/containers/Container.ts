@@ -78,8 +78,8 @@ export class Container {
     this.SQSService = new SQSService(sqsQueueUrl, this.Logger);
 
     this.PaymentRepository = new PaymentDynamoRepository(this.Logger);
-    this.TicketCountRepository = new TicketCountDynamoRepository();
-    this.TicketRepository = new TicketDynamoRepository();
+    this.TicketCountRepository = new TicketCountDynamoRepository(this.Logger);
+    this.TicketRepository = new TicketDynamoRepository(this.Logger);
     this.EventRepository = new EventDynamoRepository(this.Logger);
 
     this.SendNFTUseCase = new SendNFTUseCase(

@@ -1,7 +1,6 @@
 export interface EventEntity {
   id: string;
   artists: Artist[];
-  availableTickets: number;
   category: string;
   collectionName: string;
   collectionSymbol: string;
@@ -35,6 +34,7 @@ interface PR {
 
 interface Ticket {
   id: string;
+  availableTickets: number;
   description: string;
   imageUrl: string;
   name: string;

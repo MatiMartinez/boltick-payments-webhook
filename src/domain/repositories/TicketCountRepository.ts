@@ -1,3 +1,6 @@
+import { Count, TicketCountEntity } from "@domain/entities/TicketCountEntity";
+
 export interface ITicketCountRepository {
-  incrementCountByEventId(eventId: string, increment?: number): Promise<void>;
+  getTicketCount(eventId: string): Promise<TicketCountEntity>;
+  updateTicketCount(eventId: string, newCount: Count[]): Promise<void>;
 }

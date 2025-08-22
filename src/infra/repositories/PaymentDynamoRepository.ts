@@ -4,7 +4,7 @@ import { IPaymentRepository } from "@domain/repositories/PaymentRepository";
 import { ILogger } from "@commons/Logger/interface";
 
 export class PaymentDynamoRepository implements IPaymentRepository {
-  constructor(private logger: ILogger) {}
+  constructor(private Logger: ILogger) {}
 
   async getPaymentById(id: string) {
     const response = await PaymentModel.query("id").eq(id).using("idIndex").exec();
@@ -19,7 +19,7 @@ export class PaymentDynamoRepository implements IPaymentRepository {
     try {
       return await PaymentModel.update({ userId, createdAt }, toUpdate);
     } catch (error) {
-      this.logger.error("[PaymentDynamoRepository] Error al actualizar el NFT", { error: (error as Error).message });
+      this.Logger.error("[PaymentDynamoRepository] Error al actualizar el NFT", { error: (error as Error).message });
       throw error;
     }
   }
