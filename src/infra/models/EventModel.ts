@@ -15,6 +15,7 @@ const PRSchema = new dynamoose.Schema({
   name: { type: String, required: true },
   phone: { type: String, required: true },
   photo: { type: String, required: true },
+  slug: { type: String, required: true },
 });
 
 const TicketSchema = new dynamoose.Schema({
