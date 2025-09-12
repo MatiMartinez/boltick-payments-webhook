@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import { IValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/interface";
 import { IValidateManualEntryUseCase } from "@useCases/ValidateManualEntryUseCase/interface";
+import { IGetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/interface";
 
 export class TicketController {
   constructor(
     private ValidateEntryUseCase: IValidateEntryUseCase,
-    private ValidateManualEntryUseCase: IValidateManualEntryUseCase
+    private ValidateManualEntryUseCase: IValidateManualEntryUseCase,
+    private GetTicketCountByEventIdUseCase: IGetTicketCountByEventIdUseCase
   ) {}
 
   async ValidateEntry(req: Request, res: Response): Promise<void> {
@@ -28,6 +30,18 @@ export class TicketController {
     } catch (error) {
       const err = error as Error;
       console.error("Error validating manual entry:", err.message);
+      res.status(400).json({ error: err.message });
+    }
+  }
+
+  async GetTicketCountByEventId(req: Request, res: Response): Promise<void> {
+    try {
+      const eventId = req.params.eventId as string;
+      const result = await this.GetTicketCountByEventIdUseCase.execute({ eventId });
+      res.status(200).json(result);
+    } catch (error) {
+      const err = error as Error;
+      console.error("Error getting ticket count by event id:", err.message);
       res.status(400).json({ error: err.message });
     }
   }

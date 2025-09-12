@@ -21,6 +21,8 @@ import { IValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/interface"
 import { ValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/ValidateEntryUseCase";
 import { IValidateManualEntryUseCase } from "@useCases/ValidateManualEntryUseCase/interface";
 import { ValidateManualEntryUseCase } from "@useCases/ValidateManualEntryUseCase/ValidateManualEntryUseCase";
+import { IGetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/interface";
+import { GetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/GetTicketCountByEventIdUseCase";
 
 import { PaymentAPIController } from "@controllers/PaymentAPIController";
 import { PaymentSQSController } from "@controllers/PaymentSQSController";
@@ -46,6 +48,7 @@ export class Container {
   private UpdateFreePaymentUseCase: UpdateFreePaymentUseCase;
   private ValidateEntryUseCase: IValidateEntryUseCase;
   private ValidateManualEntryUseCase: IValidateManualEntryUseCase;
+  private GetTicketCountByEventIdUseCase: IGetTicketCountByEventIdUseCase;
 
   private PaymentAPIController: PaymentAPIController;
   private PaymentSQSController: PaymentSQSController;
@@ -100,10 +103,11 @@ export class Container {
     this.UpdateFreePaymentUseCase = new UpdateFreePaymentUseCase(this.PaymentRepository, this.TicketCountRepository, this.SQSService, this.Logger);
     this.ValidateEntryUseCase = new ValidateEntryUseCase(this.TicketRepository, this.S3Service);
     this.ValidateManualEntryUseCase = new ValidateManualEntryUseCase(this.TicketRepository, this.S3Service);
+    this.GetTicketCountByEventIdUseCase = new GetTicketCountByEventIdUseCase(this.TicketCountRepository, this.Logger);
 
     this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase, this.UpdateFreePaymentUseCase);
     this.PaymentSQSController = new PaymentSQSController(this.SendNFTUseCase, this.Logger);
-    this.TicketController = new TicketController(this.ValidateEntryUseCase, this.ValidateManualEntryUseCase);
+    this.TicketController = new TicketController(this.ValidateEntryUseCase, this.ValidateManualEntryUseCase, this.GetTicketCountByEventIdUseCase);
   }
 
   public static getInstance(): Container {

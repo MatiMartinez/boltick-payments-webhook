@@ -85,7 +85,11 @@ export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
     // Actualizar el contador sumando la cantidad real de NFTs comprados por tipo
     const newCount = ticketCount.count.map((count) => {
       const nftCount = nftCountByType.get(count.type) || 0;
-      return { type: count.type, count: count.count + nftCount };
+      return {
+        type: count.type,
+        count: count.count + nftCount,
+        used: count.used,
+      };
     });
 
     await this.TicketCountRepository.updateTicketCount(eventId, newCount);

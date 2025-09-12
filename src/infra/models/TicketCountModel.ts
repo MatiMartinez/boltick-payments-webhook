@@ -7,6 +7,7 @@ interface TicketCountDocument extends TicketCountEntity, Item {}
 const CountSchema = new dynamoose.Schema({
   type: { type: String, required: true },
   count: { type: Number, required: true },
+  used: { type: Number, required: true },
 });
 
 const TicketCountSchema = new dynamoose.Schema({

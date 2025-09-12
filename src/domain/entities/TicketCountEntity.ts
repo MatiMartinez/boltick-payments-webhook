@@ -6,4 +6,5 @@ export interface TicketCountEntity {
 export interface Count {
   type: string;
   count: number;
+  used: number;
 }

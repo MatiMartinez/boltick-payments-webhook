@@ -11,5 +11,6 @@ Router.post("/webhook-mercadopago", (req, res) => PaymentAPIController.UpdatePay
 
 Router.post("/validate-entry", (req, res) => TicketController.ValidateEntry(req, res));
 Router.post("/validate-manual-entry", (req, res) => TicketController.ValidateManualEntry(req, res));
+Router.get("/ticket-count/:eventId", (req, res) => TicketController.GetTicketCountByEventId(req, res));
 
 export { Router };
