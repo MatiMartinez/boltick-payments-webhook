@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "serverless offline start --reloadHandler",
     "build": "ts-node build.ts",
+    "build:zip": "zip -r build/handler.zip build/handler.js",
     "eslint": "eslint . --ext ts",
     "prettier": "prettier --check ./src"
   },

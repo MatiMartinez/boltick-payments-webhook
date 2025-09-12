@@ -1,4 +1,4 @@
-import { IGetTicketCountByEventIdUseCase, IGetTicketCountByEventIdUseCaseInput, IGetTicketCountByEventIdUseCaseOutput } from "./interface";
+import { IGetTicketCountByEventIdUseCase, IGetTicketCountByEventIdUseCaseOutput } from "./interface";
 import { ITicketCountRepository } from "@domain/repositories/TicketCountRepository";
 import { ILogger } from "@commons/Logger/interface";
 
@@ -8,13 +8,13 @@ export class GetTicketCountByEventIdUseCase implements IGetTicketCountByEventIdU
     private logger: ILogger
   ) {}
 
-  public async execute(input: IGetTicketCountByEventIdUseCaseInput): Promise<IGetTicketCountByEventIdUseCaseOutput> {
+  public async execute(input: string): Promise<IGetTicketCountByEventIdUseCaseOutput> {
     try {
-      if (!input.eventId || input.eventId.trim() === "") {
+      if (!input || input.trim() === "") {
         return { result: 0, message: "EventId no proporcionado" };
       }
 
-      const ticketCount = await this.ticketCountRepository.getTicketCount(input.eventId);
+      const ticketCount = await this.ticketCountRepository.getTicketCount(input);
 
       if (!ticketCount) {
         return { result: 0, message: "No se encontró información de tickets para este evento" };
@@ -31,7 +31,7 @@ export class GetTicketCountByEventIdUseCase implements IGetTicketCountByEventIdU
     } catch (error) {
       const errorMessage = (error as Error).message;
       this.logger.error("[GetTicketCountByEventIdUseCase] Error al obtener ticket count", {
-        eventId: input.eventId,
+        eventId: input,
         error: errorMessage,
       });
       return { result: 0, message: `Error al obtener ticket count: ${errorMessage}` };

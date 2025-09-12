@@ -36,8 +36,8 @@ export class TicketController {
 
   async GetTicketCountByEventId(req: Request, res: Response): Promise<void> {
     try {
-      const eventId = req.params.eventId as string;
-      const result = await this.GetTicketCountByEventIdUseCase.execute({ eventId });
+      const eventId = req.params.id as string;
+      const result = await this.GetTicketCountByEventIdUseCase.execute(eventId);
       res.status(200).json(result);
     } catch (error) {
       const err = error as Error;

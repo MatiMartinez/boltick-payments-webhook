@@ -1,11 +1,7 @@
 import { TicketCountEntity } from "@domain/entities/TicketCountEntity";
 
 export interface IGetTicketCountByEventIdUseCase {
-  execute(input: IGetTicketCountByEventIdUseCaseInput): Promise<IGetTicketCountByEventIdUseCaseOutput>;
-}
-
-export interface IGetTicketCountByEventIdUseCaseInput {
-  eventId: string;
+  execute(input: string): Promise<IGetTicketCountByEventIdUseCaseOutput>;
 }
 
 export interface IGetTicketCountByEventIdUseCaseOutput {
