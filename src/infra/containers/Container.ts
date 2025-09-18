@@ -101,8 +101,8 @@ export class Container {
       this.Logger
     );
     this.UpdateFreePaymentUseCase = new UpdateFreePaymentUseCase(this.PaymentRepository, this.TicketCountRepository, this.SQSService, this.Logger);
-    this.ValidateEntryUseCase = new ValidateEntryUseCase(this.TicketRepository, this.S3Service);
-    this.ValidateManualEntryUseCase = new ValidateManualEntryUseCase(this.TicketRepository, this.S3Service);
+    this.ValidateEntryUseCase = new ValidateEntryUseCase(this.TicketRepository, this.S3Service, this.TicketCountRepository);
+    this.ValidateManualEntryUseCase = new ValidateManualEntryUseCase(this.TicketRepository, this.S3Service, this.TicketCountRepository);
     this.GetTicketCountByEventIdUseCase = new GetTicketCountByEventIdUseCase(this.TicketCountRepository, this.Logger);
 
     this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase, this.UpdateFreePaymentUseCase);

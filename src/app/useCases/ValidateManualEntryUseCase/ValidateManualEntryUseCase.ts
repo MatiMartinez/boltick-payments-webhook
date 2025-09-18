@@ -1,11 +1,13 @@
 import { IValidateManualEntryUseCase, IValidateManualEntryUseCaseInput, IValidateManualEntryUseCaseOutput } from "./interface";
 import { ITicketRepository } from "@domain/repositories/TicketRepository";
 import { IS3Service } from "@services/S3/interface";
+import { ITicketCountRepository } from "@domain/repositories/TicketCountRepository";
 
 export class ValidateManualEntryUseCase implements IValidateManualEntryUseCase {
   constructor(
     private ticketRepository: ITicketRepository,
-    private s3Service: IS3Service
+    private s3Service: IS3Service,
+    private ticketCountRepository: ITicketCountRepository
   ) {}
 
   public async execute(input: IValidateManualEntryUseCaseInput): Promise<IValidateManualEntryUseCaseOutput> {
@@ -39,6 +41,7 @@ export class ValidateManualEntryUseCase implements IValidateManualEntryUseCase {
 
     await this.ticketRepository.update(updatedTicket);
     await this.updateS3Metadata(ticket.metadataUrl, now);
+    await this.incrementTicketCountUsed(ticket.eventId, ticket.type);
 
     console.log("Ticket validado manualmente:", updatedTicket.ticketNumber);
 
@@ -64,5 +67,28 @@ export class ValidateManualEntryUseCase implements IValidateManualEntryUseCase {
     const fileKey = urlParts.slice(1).join("/");
 
     return { bucket, fileKey };
+  }
+
+  private async incrementTicketCountUsed(eventId: string, ticketType: string): Promise<void> {
+    try {
+      const ticketCount = await this.ticketCountRepository.getTicketCount(eventId);
+
+      if (ticketCount) {
+        const newCount = ticketCount.count.map((count) => {
+          if (count.type === ticketType) {
+            return {
+              type: count.type,
+              count: count.count,
+              used: count.used + 1,
+            };
+          }
+          return count;
+        });
+
+        await this.ticketCountRepository.updateTicketCount(eventId, newCount);
+      }
+    } catch (error) {
+      console.error("Error incrementing ticket count used:", error);
+    }
   }
 }

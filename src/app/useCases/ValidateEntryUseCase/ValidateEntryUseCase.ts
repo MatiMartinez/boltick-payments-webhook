@@ -1,11 +1,13 @@
 import { IValidateEntryUseCase, IValidateEntryUseCaseInput, IValidateEntryUseCaseOutput } from "./interface";
 import { ITicketRepository } from "@domain/repositories/TicketRepository";
 import { IS3Service } from "@services/S3/interface";
+import { ITicketCountRepository } from "@domain/repositories/TicketCountRepository";
 
 export class ValidateEntryUseCase implements IValidateEntryUseCase {
   constructor(
     private ticketRepository: ITicketRepository,
-    private s3Service: IS3Service
+    private s3Service: IS3Service,
+    private ticketCountRepository: ITicketCountRepository
   ) {}
 
   public async execute(input: IValidateEntryUseCaseInput): Promise<IValidateEntryUseCaseOutput> {
@@ -46,6 +48,7 @@ export class ValidateEntryUseCase implements IValidateEntryUseCase {
 
     await this.ticketRepository.update(updatedTicket);
     await this.updateS3Metadata(ticket.metadataUrl, now);
+    await this.incrementTicketCountUsed(ticket.eventId, ticket.type);
 
     console.log("Ticket validado:", updatedTicket.ticketNumber);
 
@@ -76,5 +79,28 @@ export class ValidateEntryUseCase implements IValidateEntryUseCase {
   private decodedToken(value: string): { ticketNumber: string; entryCode: string; entryCodeExpiresAt: number } {
     const [ticketNumber, entryCode, entryCodeExpiresAt] = value.split(":");
     return { ticketNumber, entryCode, entryCodeExpiresAt: Number(entryCodeExpiresAt) };
+  }
+
+  private async incrementTicketCountUsed(eventId: string, ticketType: string): Promise<void> {
+    try {
+      const ticketCount = await this.ticketCountRepository.getTicketCount(eventId);
+
+      if (ticketCount) {
+        const newCount = ticketCount.count.map((count) => {
+          if (count.type === ticketType) {
+            return {
+              type: count.type,
+              count: count.count,
+              used: count.used + 1,
+            };
+          }
+          return count;
+        });
+
+        await this.ticketCountRepository.updateTicketCount(eventId, newCount);
+      }
+    } catch (error) {
+      console.error("Error incrementing ticket count used:", error);
+    }
   }
 }
