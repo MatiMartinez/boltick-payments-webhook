@@ -1,13 +1,29 @@
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  Transaction,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
 import { ISolanaService, NFT, Token } from "./interface";
+import {
+  TOKEN_2022_PROGRAM_ID,
+  createAssociatedTokenAccountInstruction,
+  createMintToInstruction,
+  getAccount,
+  getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
 
 export class SolanaService implements ISolanaService {
   private apiKey: string;
   private rpcUrl: string;
   private creatorAddress: string;
+  private rpcBoltUrl: string;
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
     this.rpcUrl = `https://mainnet.helius-rpc.com/?api-key=${apiKey}`;
+    this.rpcBoltUrl = process.env.RPC_BOLT_URL as string;
 
     this.creatorAddress = process.env.CREATOR_PUBLIC_KEY as string;
     if (!this.creatorAddress) {
@@ -53,7 +69,9 @@ export class SolanaService implements ISolanaService {
       const result = response.result;
 
       if (!result.minted || !result.assetId) {
-        throw new Error(`Mint failed. Minted: ${result.minted}, AssetId: ${result.assetId}, Signature: ${result.signature}`);
+        throw new Error(
+          `Mint failed. Minted: ${result.minted}, AssetId: ${result.assetId}, Signature: ${result.signature}`
+        );
       }
 
       console.log("cNFT minted successfully!");
@@ -72,6 +90,81 @@ export class SolanaService implements ISolanaService {
       const err = error as Error;
       console.error(`Error minting cNFT: ${err.message}`);
       throw new Error(`Error minting cNFT: ${err.message}`);
+    }
+  }
+
+  async mintBOLT(toAddress: string, amount: number) {
+    try {
+      console.log(`Minting ${amount} BOLT tokens to ${toAddress}`);
+
+      if (!this.isValidSolanaAddress(toAddress)) {
+        throw new Error("Invalid recipient address");
+      }
+
+      const mintAuthorityKeypair = process.env.CREATOR_KEYPAIR;
+      if (!mintAuthorityKeypair) {
+        throw new Error("CREATOR_KEYPAIR environment variable is required");
+      }
+
+      const connection = new Connection(this.rpcBoltUrl, "confirmed");
+
+      const mintAuthority = Keypair.fromSecretKey(new Uint8Array(JSON.parse(mintAuthorityKeypair)));
+
+      console.log("mintAuthority", mintAuthority.publicKey);
+
+      const toPublicKey = new PublicKey(toAddress);
+      const tokenMintAddress = new PublicKey(process.env.BOLT_MINT_ADDRESS as string);
+
+      const toTokenAccountAddress = getAssociatedTokenAddressSync(
+        tokenMintAddress,
+        toPublicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      console.log(`To token account address: ${toTokenAccountAddress.toString()}`);
+
+      let accountExists = false;
+      try {
+        await getAccount(connection, toTokenAccountAddress, undefined, TOKEN_2022_PROGRAM_ID);
+        accountExists = true;
+        console.log("Associated token account already exists");
+      } catch (error) {
+        console.log("Associated token account does not exist, will create in transaction");
+      }
+
+      const transaction = new Transaction();
+
+      if (!accountExists) {
+        transaction.add(
+          createAssociatedTokenAccountInstruction(
+            mintAuthority.publicKey,
+            toTokenAccountAddress,
+            toPublicKey,
+            tokenMintAddress,
+            TOKEN_2022_PROGRAM_ID
+          )
+        );
+      }
+
+      transaction.add(
+        createMintToInstruction(
+          tokenMintAddress,
+          toTokenAccountAddress,
+          mintAuthority.publicKey,
+          amount,
+          [],
+          TOKEN_2022_PROGRAM_ID
+        )
+      );
+
+      const signature = await sendAndConfirmTransaction(connection, transaction, [mintAuthority]);
+
+      console.log(`BOLT tokens minted successfully! Signature: ${signature}`);
+    } catch (error) {
+      const err = error as Error;
+      console.error(`Error minting BOLT token: ${err.message}`);
+      throw new Error(`Error minting BOLT token: ${err.message}`);
     }
   }
 
