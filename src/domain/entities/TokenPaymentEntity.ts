@@ -2,7 +2,7 @@ export interface TokenPaymentEntity {
   id: string;
   createdAt: number;
   tokensSent: TokensSentStatus;
-  paymentDetails?: PaymentDetails;
+  paymentDetails: PaymentDetails;
   paymentStatus: Status;
   provider: Provider;
   updatedAt: number;

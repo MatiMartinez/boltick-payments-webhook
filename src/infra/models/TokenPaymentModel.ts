@@ -17,7 +17,7 @@ const TokenPaymentSchema = new dynamoose.Schema({
   tokensSent: { type: String, required: true },
   paymentDetails: {
     type: Object,
-    required: false,
+    required: true,
     schema: PaymentDetailsSchema,
   },
   paymentStatus: { type: String, required: true },
