@@ -1,6 +1,6 @@
 export interface ISolanaService {
   mintNFT(userAddress: string, nft: NFT, collectionName: string): Promise<Token>;
-  mintBOLT(toAddress: string, amount: number): void;
+  mintBOLT(toAddress: string, amount: number): Promise<void>;
 }
 
 export interface NFT {

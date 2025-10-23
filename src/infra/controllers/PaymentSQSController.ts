@@ -1,16 +1,18 @@
 import { ILogger } from "@commons/Logger/interface";
 import { ISendNFTUseCase } from "@useCases/SendNFTUseCase/interface";
+import { ISendTokensUseCase } from "@useCases/SendTokensUseCase/interface";
 
 interface MessageBody {
   action: Action;
   body: any;
 }
 
-type Action = "SEND_NFT";
+type Action = "SEND_NFT" | "SEND_TOKENS";
 
 export class PaymentSQSController {
   constructor(
     private SendNFTUseCase: ISendNFTUseCase,
+    private SendTokensUseCase: ISendTokensUseCase,
     private Logger: ILogger
   ) {}
 
@@ -19,6 +21,10 @@ export class PaymentSQSController {
       switch (event.action) {
         case "SEND_NFT":
           await this.SendNFTUseCase.execute(event.body);
+          return { statusCode: 200, body: "Ok" };
+
+        case "SEND_TOKENS":
+          await this.SendTokensUseCase.execute(event.body);
           return { statusCode: 200, body: "Ok" };
 
         default:

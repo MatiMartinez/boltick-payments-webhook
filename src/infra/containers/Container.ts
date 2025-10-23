@@ -23,6 +23,10 @@ import { IValidateManualEntryUseCase } from "@useCases/ValidateManualEntryUseCas
 import { ValidateManualEntryUseCase } from "@useCases/ValidateManualEntryUseCase/ValidateManualEntryUseCase";
 import { IGetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/interface";
 import { GetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/GetTicketCountByEventIdUseCase";
+import { IUpdateTokenPaymentUseCase } from "@useCases/UpdateTokenPaymentUseCase/interface";
+import { UpdateTokenPaymentUseCase } from "@useCases/UpdateTokenPaymentUseCase/UpdateTokenPaymentUseCase";
+import { ISendTokensUseCase } from "@useCases/SendTokensUseCase/interface";
+import { SendTokensUseCase } from "@useCases/SendTokensUseCase/SendTokensUseCase";
 
 import { PaymentAPIController } from "@controllers/PaymentAPIController";
 import { PaymentSQSController } from "@controllers/PaymentSQSController";
@@ -49,6 +53,8 @@ export class Container {
   private ValidateEntryUseCase: IValidateEntryUseCase;
   private ValidateManualEntryUseCase: IValidateManualEntryUseCase;
   private GetTicketCountByEventIdUseCase: IGetTicketCountByEventIdUseCase;
+  private UpdateTokenPaymentUseCase: IUpdateTokenPaymentUseCase;
+  private SendTokensUseCase: ISendTokensUseCase;
 
   private PaymentAPIController: PaymentAPIController;
   private PaymentSQSController: PaymentSQSController;
@@ -105,8 +111,8 @@ export class Container {
     this.ValidateManualEntryUseCase = new ValidateManualEntryUseCase(this.TicketRepository, this.S3Service, this.TicketCountRepository);
     this.GetTicketCountByEventIdUseCase = new GetTicketCountByEventIdUseCase(this.TicketCountRepository, this.Logger);
 
-    this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase, this.UpdateFreePaymentUseCase);
-    this.PaymentSQSController = new PaymentSQSController(this.SendNFTUseCase, this.Logger);
+    this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase, this.UpdateFreePaymentUseCase, this.UpdateTokenPaymentUseCase);
+    this.PaymentSQSController = new PaymentSQSController(this.SendNFTUseCase, this.SendTokensUseCase, this.Logger);
     this.TicketController = new TicketController(this.ValidateEntryUseCase, this.ValidateManualEntryUseCase, this.GetTicketCountByEventIdUseCase);
   }
 

@@ -2,17 +2,19 @@ import { TokenPaymentEntity } from "@domain/entities/TokenPaymentEntity";
 import { ISendTokensUseCase, SendTokensInput } from "./interface";
 import { ITokenPaymentRepository } from "@domain/repositories/TokenPaymentRepository";
 import { ILogger } from "@commons/Logger/interface";
+import { ISolanaService } from "@services/Solana/interface";
 
 export class SendTokensUseCase implements ISendTokensUseCase {
   constructor(
     private TokenPaymentRepository: ITokenPaymentRepository,
+    private SolanaService: ISolanaService,
     private Logger: ILogger
   ) {}
 
   async execute(input: SendTokensInput) {
     const payment = await this.validatePayment(input);
 
-    // Aquí se implementará la lógica para enviar tokens al usuario
+    await this.SolanaService.mintBOLT(payment.walletPublicKey, payment.paymentDetails.amount);
 
     this.Logger.info("[SendTokensUseCase] Procesando envío de tokens", {
       paymentId: payment.id,
