@@ -1,6 +1,6 @@
 import { Status } from "@domain/entities/TokenPaymentEntity";
 import { IUpdateTokenPaymentUseCase, MercadopagoWebhookInput } from "./interface";
-import { MercadoPagoService } from "@services/MercadoPago/MercadoPagoService";
+import { IMercadoPagoService } from "@services/MercadoPago/interface";
 import { ITokenPaymentRepository } from "@domain/repositories/TokenPaymentRepository";
 import { ISQSService } from "@services/SQS/interface";
 import { ILogger } from "@commons/Logger/interface";
@@ -8,7 +8,7 @@ import { ILogger } from "@commons/Logger/interface";
 export class UpdateTokenPaymentUseCase implements IUpdateTokenPaymentUseCase {
   constructor(
     private TokenPaymentRepository: ITokenPaymentRepository,
-    private MercadoPagoService: MercadoPagoService,
+    private MercadoPagoService: IMercadoPagoService,
     private SQSService: ISQSService,
     private Logger: ILogger
   ) {}
