@@ -147,12 +147,14 @@ export class SolanaService implements ISolanaService {
         );
       }
 
+      const mintAmount = this.calculateMintAmount(amount);
+
       transaction.add(
         createMintToInstruction(
           tokenMintAddress,
           toTokenAccountAddress,
           mintAuthority.publicKey,
-          amount,
+          mintAmount,
           [],
           TOKEN_2022_PROGRAM_ID
         )
@@ -216,6 +218,11 @@ export class SolanaService implements ISolanaService {
     } catch {
       return false;
     }
+  }
+
+  private calculateMintAmount(amount: number): number {
+    const decimals = 9;
+    return amount * Math.pow(10, decimals);
   }
 
   async testConnection(): Promise<boolean> {
