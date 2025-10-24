@@ -16,12 +16,7 @@ export class UpdateTokenPaymentUseCase implements IUpdateTokenPaymentUseCase {
   async execute(input: MercadopagoWebhookInput) {
     const mercadoPagoPayment = await this.MercadoPagoService.getPayment(input.data.id);
 
-    if (
-      !mercadoPagoPayment ||
-      !mercadoPagoPayment.external_reference ||
-      mercadoPagoPayment.status !== "approved" ||
-      (process.env.ENV === "PROD" ? !mercadoPagoPayment.live_mode : mercadoPagoPayment.live_mode)
-    ) {
+    if (!mercadoPagoPayment || !mercadoPagoPayment.external_reference || mercadoPagoPayment.status !== "approved") {
       this.Logger.error("[UpdateTokenPaymentUseCase] Pago de Mercado Pago no encontrado: ", JSON.stringify({ input, mercadoPagoPayment }, null, 2));
       return true;
     }
