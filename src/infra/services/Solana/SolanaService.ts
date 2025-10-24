@@ -10,6 +10,7 @@ import {
   TOKEN_2022_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
   createMintToInstruction,
+  createTransferCheckedInstruction,
   getAccount,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
@@ -163,10 +164,104 @@ export class SolanaService implements ISolanaService {
       const signature = await sendAndConfirmTransaction(connection, transaction, [mintAuthority]);
 
       console.log(`BOLT tokens minted successfully! Signature: ${signature}`);
+      return signature;
     } catch (error) {
       const err = error as Error;
       console.error(`Error minting BOLT token: ${err.message}`);
       throw new Error(`Error minting BOLT token: ${err.message}`);
+    }
+  }
+
+  async transferBOLT(fromAddress: string, toAddress: string, amount: number): Promise<string> {
+    try {
+      console.log(`Transferring ${amount} BOLT tokens from ${fromAddress} to ${toAddress}`);
+
+      if (!this.isValidSolanaAddress(fromAddress) || !this.isValidSolanaAddress(toAddress)) {
+        throw new Error("Invalid address provided");
+      }
+
+      const connection = new Connection(this.rpcBoltUrl, "confirmed");
+      const delegate = this.getCreatorKeypair();
+
+      const fromPublicKey = new PublicKey(fromAddress);
+      const toPublicKey = new PublicKey(toAddress);
+      const tokenMintAddress = new PublicKey(process.env.BOLT_MINT_ADDRESS as string);
+
+      const fromTokenAccountAddress = getAssociatedTokenAddressSync(
+        tokenMintAddress,
+        fromPublicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      const toTokenAccountAddress = getAssociatedTokenAddressSync(
+        tokenMintAddress,
+        toPublicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      console.log(`From token account: ${fromTokenAccountAddress.toString()}`);
+      console.log(`To token account: ${toTokenAccountAddress.toString()}`);
+
+      const fromAccount = await getAccount(
+        connection,
+        fromTokenAccountAddress,
+        undefined,
+        TOKEN_2022_PROGRAM_ID
+      );
+      const transferAmount = this.calculateMintAmount(amount);
+
+      if (fromAccount.amount < transferAmount) {
+        throw new Error(
+          `Insufficient balance. Has: ${fromAccount.amount}, needs: ${transferAmount}`
+        );
+      }
+
+      const transaction = new Transaction();
+
+      let toAccountExists = false;
+      try {
+        await getAccount(connection, toTokenAccountAddress, undefined, TOKEN_2022_PROGRAM_ID);
+        toAccountExists = true;
+        console.log("Destination token account already exists");
+      } catch (error) {
+        console.log("Destination token account does not exist, will create in transaction");
+      }
+
+      if (!toAccountExists) {
+        transaction.add(
+          createAssociatedTokenAccountInstruction(
+            delegate.publicKey,
+            toTokenAccountAddress,
+            toPublicKey,
+            tokenMintAddress,
+            TOKEN_2022_PROGRAM_ID
+          )
+        );
+      }
+
+      transaction.add(
+        createTransferCheckedInstruction(
+          fromTokenAccountAddress,
+          tokenMintAddress,
+          toTokenAccountAddress,
+          delegate.publicKey,
+          transferAmount,
+          9,
+          [],
+          TOKEN_2022_PROGRAM_ID
+        )
+      );
+
+      const signature = await sendAndConfirmTransaction(connection, transaction, [delegate]);
+
+      console.log(`BOLT tokens transferred successfully! Signature: ${signature}`);
+      return signature;
+    } catch (error) {
+      const err = error as Error;
+      console.error(`Error transferring BOLT token: ${err.message}`);
+      throw new Error(`Error transferring BOLT token: ${err.message}`);
     }
   }
 
@@ -234,6 +329,26 @@ export class SolanaService implements ISolanaService {
     } catch (error) {
       console.error("Connection test failed:", error);
       return false;
+    }
+  }
+
+  /**
+   * Obtiene el Keypair del creador a partir de CREATOR_KEYPAIR
+   * @returns El Keypair del creador
+   */
+  getCreatorKeypair(): Keypair {
+    try {
+      const creatorKeypair = process.env.CREATOR_KEYPAIR;
+      if (!creatorKeypair) {
+        throw new Error("CREATOR_KEYPAIR environment variable is required");
+      }
+
+      const keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(creatorKeypair)));
+      return keypair;
+    } catch (error) {
+      const err = error as Error;
+      console.error(`Error getting creator keypair: ${err.message}`);
+      throw new Error(`Error getting creator keypair: ${err.message}`);
     }
   }
 }

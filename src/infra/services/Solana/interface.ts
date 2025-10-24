@@ -1,6 +1,8 @@
 export interface ISolanaService {
   mintNFT(userAddress: string, nft: NFT, collectionName: string): Promise<Token>;
-  mintBOLT(toAddress: string, amount: number): Promise<void>;
+  mintBOLT(toAddress: string, amount: number): Promise<string>;
+  transferBOLT(fromAddress: string, toAddress: string, amount: number): Promise<string>;
+  getCreatorKeypair(): any; // Retorna el Keypair de Solana
 }
 
 export interface NFT {
