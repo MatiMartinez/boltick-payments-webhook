@@ -15,7 +15,7 @@ export class MercadoPagoService implements IMercadoPagoService {
   }
 
   async getPayment(id: string) {
-    if (!this.isProd) return { ...paymentMock, external_reference: id, live_mode: false };
+    // if (!this.isProd) return { ...paymentMock, external_reference: id, live_mode: false };
 
     const payment = new Payment(this.client);
     const response = await payment.get({ id });
@@ -31,13 +31,13 @@ export class MercadoPagoService implements IMercadoPagoService {
   }
 }
 
-const paymentMock: PaymentResponse = {
-  api_response: {
-    headers: ["", []],
-    status: 200,
-  },
-  transaction_amount: 20000,
-  authorization_code: "123456",
-  id: 123456,
-  status: "approved",
-};
+// const paymentMock: PaymentResponse = {
+//   api_response: {
+//     headers: ["", []],
+//     status: 200,
+//   },
+//   transaction_amount: 20000,
+//   authorization_code: "123456",
+//   id: 123456,
+//   status: "approved",
+// };

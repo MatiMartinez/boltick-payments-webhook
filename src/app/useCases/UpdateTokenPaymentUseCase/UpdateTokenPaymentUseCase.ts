@@ -1,6 +1,6 @@
 import { Status } from "@domain/entities/TokenPaymentEntity";
 import { IUpdateTokenPaymentUseCase, MercadopagoWebhookInput } from "./interface";
-import { MercadoPagoService } from "@services/MercadoPago/MercadoPagoService";
+import { IMercadoPagoService } from "@services/MercadoPago/interface";
 import { ITokenPaymentRepository } from "@domain/repositories/TokenPaymentRepository";
 import { ISQSService } from "@services/SQS/interface";
 import { ILogger } from "@commons/Logger/interface";
@@ -8,7 +8,7 @@ import { ILogger } from "@commons/Logger/interface";
 export class UpdateTokenPaymentUseCase implements IUpdateTokenPaymentUseCase {
   constructor(
     private TokenPaymentRepository: ITokenPaymentRepository,
-    private MercadoPagoService: MercadoPagoService,
+    private MercadoPagoService: IMercadoPagoService,
     private SQSService: ISQSService,
     private Logger: ILogger
   ) {}
@@ -16,12 +16,7 @@ export class UpdateTokenPaymentUseCase implements IUpdateTokenPaymentUseCase {
   async execute(input: MercadopagoWebhookInput) {
     const mercadoPagoPayment = await this.MercadoPagoService.getPayment(input.data.id);
 
-    if (
-      !mercadoPagoPayment ||
-      !mercadoPagoPayment.external_reference ||
-      mercadoPagoPayment.status !== "approved" ||
-      (process.env.ENV === "PROD" ? !mercadoPagoPayment.live_mode : mercadoPagoPayment.live_mode)
-    ) {
+    if (!mercadoPagoPayment || !mercadoPagoPayment.external_reference || mercadoPagoPayment.status !== "approved") {
       this.Logger.error("[UpdateTokenPaymentUseCase] Pago de Mercado Pago no encontrado: ", JSON.stringify({ input, mercadoPagoPayment }, null, 2));
       return true;
     }

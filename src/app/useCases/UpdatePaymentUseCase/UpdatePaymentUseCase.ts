@@ -1,16 +1,16 @@
 import { NFT, Status } from "@domain/entities/PaymentEntity";
 import { IUpdatePaymentUseCase, MercadopagoWebhookInput } from "./interface";
-import { MercadoPagoService } from "@services/MercadoPago/MercadoPagoService";
 import { IPaymentRepository } from "@domain/repositories/PaymentRepository";
 import { ITicketCountRepository } from "@domain/repositories/TicketCountRepository";
 import { ISQSService } from "@services/SQS/interface";
 import { ILogger } from "@commons/Logger/interface";
+import { IMercadoPagoService } from "@services/MercadoPago/interface";
 
 export class UpdatePaymentUseCase implements IUpdatePaymentUseCase {
   constructor(
     private PaymentRepository: IPaymentRepository,
     private TicketCountRepository: ITicketCountRepository,
-    private MercadoPagoService: MercadoPagoService,
+    private MercadoPagoService: IMercadoPagoService,
     private SQSService: ISQSService,
     private Logger: ILogger
   ) {}
