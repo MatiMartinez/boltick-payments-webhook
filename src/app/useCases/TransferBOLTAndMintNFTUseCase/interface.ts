@@ -3,8 +3,5 @@ export interface ITransferBOLTAndMintNFTUseCase {
 }
 
 export interface ITransferBOLTAndMintNFTUseCaseInput {
-  eventId: string;
-  ticketTypeId: string;
-  walletAddress: string;
-  userId: string;
+  transferId: string;
 }

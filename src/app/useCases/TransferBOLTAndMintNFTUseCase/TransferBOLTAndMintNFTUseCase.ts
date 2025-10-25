@@ -1,14 +1,17 @@
+import { EventEntity, Ticket } from "@domain/entities/EventEntity";
 import { ITransferBOLTAndMintNFTUseCase, ITransferBOLTAndMintNFTUseCaseInput } from "./interface";
 import { TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddressSync } from "@solana/spl-token";
 
-import { EventEntity } from "@domain/entities/EventEntity";
 import { IEventRepository } from "@domain/repositories/IEventRepository";
 import { ILogger } from "@commons/Logger/interface";
 import { ITicketRepository } from "@domain/repositories/TicketRepository";
+import { ITokenTransferRepository } from "@domain/repositories/TokenTransferRepository";
 import { PublicKey } from "@solana/web3.js";
 import { S3Service } from "@services/S3/S3Service";
 import { SolanaService } from "@services/Solana/SolanaService";
 import { TicketEntity } from "@domain/entities/TicketEntity";
+import { TokenTransferEntity } from "@domain/entities/TokenTransferEntity";
+import { transaction } from "dynamoose";
 import { v4 as uuid } from "uuid";
 
 export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUseCase {
@@ -17,39 +20,77 @@ export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUse
     private EventRepository: IEventRepository,
     private S3Service: S3Service,
     private SolanaService: SolanaService,
+    private TokenTransferRepository: ITokenTransferRepository,
     private Logger: ILogger
   ) {}
 
   async execute(input: ITransferBOLTAndMintNFTUseCaseInput): Promise<boolean> {
-    const event = await this.validateEvent(input.eventId);
-    const ticketType = this.findTicketType(event, input.ticketTypeId);
-
     const now = new Date().getTime();
 
-    const ticketNumber = this.generateTicketId(event.collectionSymbol, event.edition);
-    const metadataUrl = await this.uploadMetadata(ticketType, event, input, ticketNumber, now);
-    const nftMetadata = this.generateNFTMetadata(event, ticketType, ticketNumber, metadataUrl);
+    const transfer = await this.TokenTransferRepository.getById(input.transferId);
 
-    const transferSignature = await this.transferBOLTTokens(input.walletAddress, ticketType.price);
-    this.Logger.info("[TransferBOLTAndMintNFTUseCase] BOLT tokens transferidos", {
-      signature: transferSignature,
-      amount: ticketType.price,
-    });
+    if (!transfer) {
+      this.Logger.error("[TransferBOLTAndMintNFTUseCase] Transferencia no encontrada", {
+        transferId: input.transferId,
+      });
+      throw new Error("La transferencia no existe");
+    }
+    try {
+      const event = await this.validateEvent(transfer.eventId);
+      const ticket = this.findTicketType(event, transfer.tokenId);
 
-    const mintedToken = await this.SolanaService.mintNFT(input.walletAddress, nftMetadata, "");
+      const ticketNumber = this.generateTicketId(event.collectionSymbol, event.edition);
+      const metadataUrl = await this.uploadMetadata(ticket, transfer, event, ticketNumber, now);
+      const nftMetadata = this.generateNFTMetadata(event, ticket, ticketNumber, metadataUrl);
 
-    await this.saveTicket(
-      event,
-      ticketType,
-      input,
-      ticketNumber,
-      metadataUrl,
-      mintedToken.address,
-      transferSignature,
-      now
-    );
+      const transferSignature = await this.transferBOLTTokens(transfer.walletAddress, ticket.price);
+      this.Logger.info("[TransferBOLTAndMintNFTUseCase] BOLT tokens transferidos", {
+        signature: transferSignature,
+        amount: ticket.price,
+      });
 
-    return true;
+      const mintedToken = await this.SolanaService.mintNFT(transfer.walletAddress, nftMetadata, "");
+
+      await this.saveTicket(
+        event,
+        ticket,
+        transfer,
+        ticketNumber,
+        metadataUrl,
+        mintedToken.address,
+        transferSignature,
+        now
+      );
+
+      // Actualizar estado a Completed
+      await this.TokenTransferRepository.update(transfer.walletAddress, transfer.createdAt, {
+        updatedAt: new Date().getTime(),
+        transactionStatus: "Completed",
+        transactionHash: transferSignature,
+        nftAddress: mintedToken.address,
+      });
+
+      this.Logger.info("[TransferBOLTAndMintNFTUseCase] Transfer completado exitosamente", {
+        transferId: transfer.transactionHash,
+        assetId: mintedToken.address,
+      });
+
+      return true;
+    } catch (error) {
+      const err = error as Error;
+      this.Logger.error("[TransferBOLTAndMintNFTUseCase] Error en la transferencia", {
+        transferId: 0,
+        error: err.message,
+      });
+
+      // Actualizar estado a Failed
+      await this.TokenTransferRepository.update(transfer.walletAddress, transfer.createdAt, {
+        updatedAt: new Date().getTime(),
+        transactionStatus: "Failed",
+      });
+
+      throw error;
+    }
   }
 
   private async validateEvent(eventId: string): Promise<EventEntity> {
@@ -100,9 +141,9 @@ export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUse
   }
 
   private async uploadMetadata(
-    ticketType: any,
+    ticket: Ticket,
+    transfer: TokenTransferEntity,
     event: EventEntity,
-    input: ITransferBOLTAndMintNFTUseCaseInput,
     ticketNumber: string,
     now: number
   ): Promise<string> {
@@ -111,23 +152,21 @@ export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUse
 
     const fullMetadata = {
       transaction: {
-        eventId: event.id,
-        eventName: event.name,
-        userId: input.userId,
-        walletPublicKey: input.walletAddress,
+        walletPublicKey: transfer.walletAddress,
+        transactionHash: transfer.transactionHash,
       },
 
       nft: {
-        id: ticketType.id,
+        address: transfer.nftAddress,
         collectionName: event.collectionName,
         collectionSymbol: event.collectionSymbol,
-        description: `Ticket digital para ${event.name}. Número: ${ticketNumber}. Tipo: ${ticketType.name}.`,
-        imageUrl: ticketType.imageUrl,
+        description: `Ticket digital para ${event.name}. Número: ${ticketNumber}. Tipo: ${ticket.name}.`,
+        imageUrl: ticket.imageUrl,
         name: event.collectionName,
         symbol: event.collectionSymbol,
         ticketNumber: ticketNumber,
-        type: ticketType.name,
-        unitPrice: ticketType.price,
+        type: ticket.name,
+        unitPrice: ticket.price,
       },
 
       createdAt: now,
@@ -189,7 +228,7 @@ export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUse
   private async saveTicket(
     event: EventEntity,
     ticketType: any,
-    input: ITransferBOLTAndMintNFTUseCaseInput,
+    transfer: TokenTransferEntity,
     ticketNumber: string,
     metadataUrl: string,
     assetId: string,
@@ -207,7 +246,7 @@ export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUse
       eventName: event.name,
       prName: "",
 
-      walletAddress: input.walletAddress,
+      walletAddress: transfer.walletAddress,
       assetId: assetId,
       collectionName: event.collectionName,
       collectionSymbol: event.collectionSymbol,

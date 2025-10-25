@@ -33,7 +33,7 @@ interface PR {
   slug: string;
 }
 
-interface Ticket {
+export interface Ticket {
   id: string;
   availableTickets: number;
   description: string;
