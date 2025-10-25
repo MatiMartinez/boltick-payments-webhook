@@ -51,16 +51,7 @@ export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUse
 
       const mintedToken = await this.SolanaService.mintNFT(transfer.walletAddress, nftMetadata, "");
 
-      await this.saveTicket(
-        event,
-        ticket,
-        transfer,
-        ticketNumber,
-        metadataUrl,
-        mintedToken.address,
-        transferSignature,
-        now
-      );
+      await this.saveTicket(event, ticket, transfer, ticketNumber, metadataUrl, mintedToken.address, transferSignature, now);
 
       // Actualizar estado a Completed
       await this.TokenTransferRepository.update(transfer.walletAddress, transfer.createdAt, {
@@ -96,10 +87,7 @@ export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUse
   private async validateEvent(eventId: string): Promise<EventEntity> {
     const event = await this.EventRepository.findById(eventId);
     if (!event) {
-      this.Logger.error(
-        "[TransferBOLTAndMintNFTUseCase] Evento no encontrado: ",
-        JSON.stringify({ eventId }, null, 2)
-      );
+      this.Logger.error("[TransferBOLTAndMintNFTUseCase] Evento no encontrado: ", JSON.stringify({ eventId }, null, 2));
       throw new Error("El evento no existe");
     }
 
@@ -109,18 +97,12 @@ export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUse
   private findTicketType(event: EventEntity, ticketTypeId: string) {
     const ticket = event.tickets.find((t) => t.id === ticketTypeId);
     if (!ticket) {
-      this.Logger.error(
-        "[TransferBOLTAndMintNFTUseCase] Tipo de ticket no encontrado: ",
-        JSON.stringify({ event, ticketTypeId }, null, 2)
-      );
+      this.Logger.error("[TransferBOLTAndMintNFTUseCase] Tipo de ticket no encontrado: ", JSON.stringify({ event, ticketTypeId }, null, 2));
       throw new Error("El tipo de ticket no existe");
     }
 
     if (ticket.availableTickets <= 0) {
-      this.Logger.error(
-        "[TransferBOLTAndMintNFTUseCase] No hay tickets disponibles: ",
-        JSON.stringify({ event, ticketTypeId }, null, 2)
-      );
+      this.Logger.error("[TransferBOLTAndMintNFTUseCase] No hay tickets disponibles: ", JSON.stringify({ event, ticketTypeId }, null, 2));
       throw new Error("No hay tickets disponibles");
     }
 
@@ -140,13 +122,7 @@ export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUse
     return `${prefix}${eventCode}-${randomLetter1}${randomLetter2}${randomDigits}`;
   }
 
-  private async uploadMetadata(
-    ticket: Ticket,
-    transfer: TokenTransferEntity,
-    event: EventEntity,
-    ticketNumber: string,
-    now: number
-  ): Promise<string> {
+  private async uploadMetadata(ticket: Ticket, transfer: TokenTransferEntity, event: EventEntity, ticketNumber: string, now: number): Promise<string> {
     const bucket = "boltick-nft-metadata";
     const fileName = process.env.ENV === "PROD" ? `nfts/${uuid()}.json` : `nfts-qa/${uuid()}.json`;
 
@@ -179,12 +155,7 @@ export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUse
     return `https://${bucket}.s3.amazonaws.com/${fileName}`;
   }
 
-  private generateNFTMetadata(
-    event: EventEntity,
-    ticketType: any,
-    ticketNumber: string,
-    metadataUrl: string
-  ) {
+  private generateNFTMetadata(event: EventEntity, ticketType: any, ticketNumber: string, metadataUrl: string) {
     return {
       name: event.collectionName,
       symbol: event.collectionSymbol,
@@ -194,33 +165,16 @@ export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUse
     };
   }
 
-  private async transferBOLTTokens(
-    fromWalletAddress: string,
-    ticketPrice: number
-  ): Promise<string> {
+  private async transferBOLTTokens(fromWalletAddress: string, ticketPrice: number): Promise<string> {
     const creatorKeypair = this.SolanaService.getCreatorKeypair();
-    const tokenMintAddress = new PublicKey(process.env.BOLT_MINT_ADDRESS as string);
-
-    const creatorAta = getAssociatedTokenAddressSync(
-      tokenMintAddress,
-      creatorKeypair.publicKey,
-      false,
-      TOKEN_2022_PROGRAM_ID
-    );
-
-    const toAddress = creatorAta.toString();
 
     this.Logger.info("[TransferBOLTAndMintNFTUseCase] Transfiriendo BOLT tokens", {
       fromAddress: fromWalletAddress,
-      toAddress,
+      toAddress: creatorKeypair.publicKey,
       amount: ticketPrice,
     });
 
-    const signature = await this.SolanaService.transferBOLT(
-      fromWalletAddress,
-      toAddress,
-      ticketPrice
-    );
+    const signature = await this.SolanaService.transferBOLT(fromWalletAddress, creatorKeypair.publicKey.toString(), ticketPrice);
 
     return signature;
   }

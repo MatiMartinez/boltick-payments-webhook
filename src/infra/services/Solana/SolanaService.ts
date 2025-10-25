@@ -1,10 +1,4 @@
-import {
-  Connection,
-  Keypair,
-  PublicKey,
-  Transaction,
-  sendAndConfirmTransaction,
-} from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 import { ISolanaService, NFT, Token } from "./interface";
 import {
   TOKEN_2022_PROGRAM_ID,
@@ -70,9 +64,7 @@ export class SolanaService implements ISolanaService {
       const result = response.result;
 
       if (!result.minted || !result.assetId) {
-        throw new Error(
-          `Mint failed. Minted: ${result.minted}, AssetId: ${result.assetId}, Signature: ${result.signature}`
-        );
+        throw new Error(`Mint failed. Minted: ${result.minted}, AssetId: ${result.assetId}, Signature: ${result.signature}`);
       }
 
       console.log("cNFT minted successfully!");
@@ -116,12 +108,7 @@ export class SolanaService implements ISolanaService {
       const toPublicKey = new PublicKey(toAddress);
       const tokenMintAddress = new PublicKey(process.env.BOLT_MINT_ADDRESS as string);
 
-      const toTokenAccountAddress = getAssociatedTokenAddressSync(
-        tokenMintAddress,
-        toPublicKey,
-        false,
-        TOKEN_2022_PROGRAM_ID
-      );
+      const toTokenAccountAddress = getAssociatedTokenAddressSync(tokenMintAddress, toPublicKey, false, TOKEN_2022_PROGRAM_ID);
 
       console.log(`To token account address: ${toTokenAccountAddress.toString()}`);
 
@@ -138,28 +125,13 @@ export class SolanaService implements ISolanaService {
 
       if (!accountExists) {
         transaction.add(
-          createAssociatedTokenAccountInstruction(
-            mintAuthority.publicKey,
-            toTokenAccountAddress,
-            toPublicKey,
-            tokenMintAddress,
-            TOKEN_2022_PROGRAM_ID
-          )
+          createAssociatedTokenAccountInstruction(mintAuthority.publicKey, toTokenAccountAddress, toPublicKey, tokenMintAddress, TOKEN_2022_PROGRAM_ID)
         );
       }
 
       const mintAmount = this.calculateMintAmount(amount);
 
-      transaction.add(
-        createMintToInstruction(
-          tokenMintAddress,
-          toTokenAccountAddress,
-          mintAuthority.publicKey,
-          mintAmount,
-          [],
-          TOKEN_2022_PROGRAM_ID
-        )
-      );
+      transaction.add(createMintToInstruction(tokenMintAddress, toTokenAccountAddress, mintAuthority.publicKey, mintAmount, [], TOKEN_2022_PROGRAM_ID));
 
       const signature = await sendAndConfirmTransaction(connection, transaction, [mintAuthority]);
 
@@ -187,35 +159,18 @@ export class SolanaService implements ISolanaService {
       const toPublicKey = new PublicKey(toAddress);
       const tokenMintAddress = new PublicKey(process.env.BOLT_MINT_ADDRESS as string);
 
-      const fromTokenAccountAddress = getAssociatedTokenAddressSync(
-        tokenMintAddress,
-        fromPublicKey,
-        false,
-        TOKEN_2022_PROGRAM_ID
-      );
+      const fromTokenAccountAddress = getAssociatedTokenAddressSync(tokenMintAddress, fromPublicKey, false, TOKEN_2022_PROGRAM_ID);
 
-      const toTokenAccountAddress = getAssociatedTokenAddressSync(
-        tokenMintAddress,
-        toPublicKey,
-        false,
-        TOKEN_2022_PROGRAM_ID
-      );
+      const toTokenAccountAddress = getAssociatedTokenAddressSync(tokenMintAddress, toPublicKey, false, TOKEN_2022_PROGRAM_ID);
 
       console.log(`From token account: ${fromTokenAccountAddress.toString()}`);
       console.log(`To token account: ${toTokenAccountAddress.toString()}`);
 
-      const fromAccount = await getAccount(
-        connection,
-        fromTokenAccountAddress,
-        undefined,
-        TOKEN_2022_PROGRAM_ID
-      );
+      const fromAccount = await getAccount(connection, fromTokenAccountAddress, undefined, TOKEN_2022_PROGRAM_ID);
       const transferAmount = this.calculateMintAmount(amount);
 
       if (fromAccount.amount < transferAmount) {
-        throw new Error(
-          `Insufficient balance. Has: ${fromAccount.amount}, needs: ${transferAmount}`
-        );
+        throw new Error(`Insufficient balance. Has: ${fromAccount.amount}, needs: ${transferAmount}`);
       }
 
       const transaction = new Transaction();
@@ -231,13 +186,7 @@ export class SolanaService implements ISolanaService {
 
       if (!toAccountExists) {
         transaction.add(
-          createAssociatedTokenAccountInstruction(
-            delegate.publicKey,
-            toTokenAccountAddress,
-            toPublicKey,
-            tokenMintAddress,
-            TOKEN_2022_PROGRAM_ID
-          )
+          createAssociatedTokenAccountInstruction(delegate.publicKey, toTokenAccountAddress, toPublicKey, tokenMintAddress, TOKEN_2022_PROGRAM_ID)
         );
       }
 
@@ -260,7 +209,7 @@ export class SolanaService implements ISolanaService {
       return signature;
     } catch (error) {
       const err = error as Error;
-      console.error(`Error transferring BOLT token: ${err.message}`);
+      console.error(`Error transferring BOLT token: `, JSON.stringify({ error }, null, 2));
       throw new Error(`Error transferring BOLT token: ${err.message}`);
     }
   }
