@@ -1,17 +1,14 @@
 import { EventEntity, Ticket } from "@domain/entities/EventEntity";
 import { ITransferBOLTAndMintNFTUseCase, ITransferBOLTAndMintNFTUseCaseInput } from "./interface";
-import { TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 import { IEventRepository } from "@domain/repositories/IEventRepository";
 import { ILogger } from "@commons/Logger/interface";
 import { ITicketRepository } from "@domain/repositories/TicketRepository";
 import { ITokenTransferRepository } from "@domain/repositories/TokenTransferRepository";
-import { PublicKey } from "@solana/web3.js";
 import { S3Service } from "@services/S3/S3Service";
 import { SolanaService } from "@services/Solana/SolanaService";
 import { TicketEntity } from "@domain/entities/TicketEntity";
 import { TokenTransferEntity } from "@domain/entities/TokenTransferEntity";
-import { transaction } from "dynamoose";
 import { v4 as uuid } from "uuid";
 
 export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUseCase {
