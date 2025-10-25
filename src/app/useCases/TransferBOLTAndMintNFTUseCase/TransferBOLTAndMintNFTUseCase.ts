@@ -142,6 +142,12 @@ export class TransferBOLTAndMintNFTUseCase implements ITransferBOLTAndMintNFTUse
         unitPrice: ticket.price,
       },
 
+      payment: {
+        eventId: event.id,
+        eventName: event.name,
+        prName: "",
+      },
+
       createdAt: now,
       used: 0,
       useDate: 0,
