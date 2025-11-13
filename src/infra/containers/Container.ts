@@ -1,32 +1,30 @@
-import { ILogger } from "@commons/Logger/interface";
-import { Logger } from "@commons/Logger/Logger";
-
-import { MercadoPagoService } from "@services/MercadoPago/MercadoPagoService";
-import { S3Service } from "@services/S3/S3Service";
-import { SolanaService } from "@services/Solana/SolanaService";
-import { ISQSService } from "@services/SQS/interface";
-import { SQSService } from "@services/SQS/SQSService";
-
-import { PaymentDynamoRepository } from "@repositories/PaymentDynamoRepository";
-import { TicketCountDynamoRepository } from "@repositories/TicketCountDynamoRepository";
-import { ITicketRepository } from "@domain/repositories/TicketRepository";
-import { TicketDynamoRepository } from "@repositories/TicketDynamoRepository";
-import { IEventRepository } from "@domain/repositories/IEventRepository";
 import { EventDynamoRepository } from "@repositories/EventDynamoRepository";
-
-import { SendNFTUseCase } from "@useCases/SendNFTUseCase/SendNFTUseCase";
-import { UpdatePaymentUseCase } from "@useCases/UpdatePaymentUseCase/UpdatePaymentUseCase";
-import { UpdateFreePaymentUseCase } from "@useCases/UpdateFreePaymentUseCase/UpdateFreePaymentUseCase";
-import { IValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/interface";
-import { ValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/ValidateEntryUseCase";
-import { IValidateManualEntryUseCase } from "@useCases/ValidateManualEntryUseCase/interface";
-import { ValidateManualEntryUseCase } from "@useCases/ValidateManualEntryUseCase/ValidateManualEntryUseCase";
-import { IGetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/interface";
 import { GetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/GetTicketCountByEventIdUseCase";
-
+import { IEventRepository } from "@domain/repositories/IEventRepository";
+import { IGetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/interface";
+import { ILogger } from "@commons/Logger/interface";
+import { IRedeemFreeTicketUseCase } from "@useCases/RedeemFreeTicketUseCase/interface";
+import { ISQSService } from "@services/SQS/interface";
+import { ITicketRepository } from "@domain/repositories/TicketRepository";
+import { IValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/interface";
+import { IValidateManualEntryUseCase } from "@useCases/ValidateManualEntryUseCase/interface";
+import { Logger } from "@commons/Logger/Logger";
+import { MercadoPagoService } from "@services/MercadoPago/MercadoPagoService";
 import { PaymentAPIController } from "@controllers/PaymentAPIController";
+import { PaymentDynamoRepository } from "@repositories/PaymentDynamoRepository";
 import { PaymentSQSController } from "@controllers/PaymentSQSController";
+import { RedeemFreeTicketUseCase } from "@useCases/RedeemFreeTicketUseCase/RedeemFreeTicketUseCase";
+import { S3Service } from "@services/S3/S3Service";
+import { SQSService } from "@services/SQS/SQSService";
+import { SendNFTUseCase } from "@useCases/SendNFTUseCase/SendNFTUseCase";
+import { SolanaService } from "@services/Solana/SolanaService";
 import { TicketController } from "@controllers/TicketController";
+import { TicketCountDynamoRepository } from "@repositories/TicketCountDynamoRepository";
+import { TicketDynamoRepository } from "@repositories/TicketDynamoRepository";
+import { UpdateFreePaymentUseCase } from "@useCases/UpdateFreePaymentUseCase/UpdateFreePaymentUseCase";
+import { UpdatePaymentUseCase } from "@useCases/UpdatePaymentUseCase/UpdatePaymentUseCase";
+import { ValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/ValidateEntryUseCase";
+import { ValidateManualEntryUseCase } from "@useCases/ValidateManualEntryUseCase/ValidateManualEntryUseCase";
 
 export class Container {
   private static instance: Container;
@@ -49,6 +47,7 @@ export class Container {
   private ValidateEntryUseCase: IValidateEntryUseCase;
   private ValidateManualEntryUseCase: IValidateManualEntryUseCase;
   private GetTicketCountByEventIdUseCase: IGetTicketCountByEventIdUseCase;
+  private RedeemFreeTicketUseCase: IRedeemFreeTicketUseCase;
 
   private PaymentAPIController: PaymentAPIController;
   private PaymentSQSController: PaymentSQSController;
@@ -100,14 +99,46 @@ export class Container {
       this.SQSService,
       this.Logger
     );
-    this.UpdateFreePaymentUseCase = new UpdateFreePaymentUseCase(this.PaymentRepository, this.TicketCountRepository, this.SQSService, this.Logger);
-    this.ValidateEntryUseCase = new ValidateEntryUseCase(this.TicketRepository, this.S3Service, this.TicketCountRepository);
-    this.ValidateManualEntryUseCase = new ValidateManualEntryUseCase(this.TicketRepository, this.S3Service, this.TicketCountRepository);
-    this.GetTicketCountByEventIdUseCase = new GetTicketCountByEventIdUseCase(this.TicketCountRepository, this.Logger);
+    this.UpdateFreePaymentUseCase = new UpdateFreePaymentUseCase(
+      this.PaymentRepository,
+      this.TicketCountRepository,
+      this.SQSService,
+      this.Logger
+    );
+    this.ValidateEntryUseCase = new ValidateEntryUseCase(
+      this.TicketRepository,
+      this.S3Service,
+      this.TicketCountRepository
+    );
+    this.ValidateManualEntryUseCase = new ValidateManualEntryUseCase(
+      this.TicketRepository,
+      this.S3Service,
+      this.TicketCountRepository
+    );
+    this.GetTicketCountByEventIdUseCase = new GetTicketCountByEventIdUseCase(
+      this.TicketCountRepository,
+      this.Logger
+    );
+    this.RedeemFreeTicketUseCase = new RedeemFreeTicketUseCase(
+      this.EventRepository,
+      this.TicketRepository,
+      this.TicketCountRepository,
+      this.S3Service,
+      this.SolanaService,
+      this.Logger
+    );
 
-    this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase, this.UpdateFreePaymentUseCase);
+    this.PaymentAPIController = new PaymentAPIController(
+      this.UpdatePaymentUseCase,
+      this.UpdateFreePaymentUseCase
+    );
     this.PaymentSQSController = new PaymentSQSController(this.SendNFTUseCase, this.Logger);
-    this.TicketController = new TicketController(this.ValidateEntryUseCase, this.ValidateManualEntryUseCase, this.GetTicketCountByEventIdUseCase);
+    this.TicketController = new TicketController(
+      this.ValidateEntryUseCase,
+      this.ValidateManualEntryUseCase,
+      this.GetTicketCountByEventIdUseCase,
+      this.RedeemFreeTicketUseCase
+    );
   }
 
   public static getInstance(): Container {
