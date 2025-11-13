@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 
+import { IGetFreeTicketsByEventIdUseCase } from "@useCases/GetFreeTicketsByEventIdUseCase/interface";
 import { IGetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/interface";
 import { IRedeemFreeTicketUseCase } from "@useCases/RedeemFreeTicketUseCase/interface";
 import { IValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/interface";
@@ -10,7 +11,8 @@ export class TicketController {
     private ValidateEntryUseCase: IValidateEntryUseCase,
     private ValidateManualEntryUseCase: IValidateManualEntryUseCase,
     private GetTicketCountByEventIdUseCase: IGetTicketCountByEventIdUseCase,
-    private RedeemFreeTicketUseCase: IRedeemFreeTicketUseCase
+    private RedeemFreeTicketUseCase: IRedeemFreeTicketUseCase,
+    private GetFreeTicketsByEventIdUseCase: IGetFreeTicketsByEventIdUseCase
   ) {}
 
   async ValidateEntry(req: Request, res: Response): Promise<void> {
@@ -73,7 +75,7 @@ export class TicketController {
         userId,
       });
 
-      if (result.success) {
+      if (result.result) {
         res.status(200).json(result);
       } else {
         res.status(400).json(result);
@@ -81,6 +83,29 @@ export class TicketController {
     } catch (error) {
       const err = error as Error;
       console.error("Error redeeming free ticket:", err.message);
+      res.status(400).json({ error: err.message });
+    }
+  }
+
+  async GetFreeTicketsByEventId(req: Request, res: Response): Promise<void> {
+    try {
+      const eventId = req.params.id as string;
+
+      if (!eventId) {
+        res.status(400).json({ error: "eventId es requerido" });
+        return;
+      }
+
+      const result = await this.GetFreeTicketsByEventIdUseCase.execute(eventId);
+
+      if (result.result) {
+        res.status(200).json(result);
+      } else {
+        res.status(404).json(result);
+      }
+    } catch (error) {
+      const err = error as Error;
+      console.error("Error getting free tickets by event id:", err.message);
       res.status(400).json({ error: err.message });
     }
   }

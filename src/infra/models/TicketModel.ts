@@ -1,4 +1,5 @@
 import * as dynamoose from "dynamoose";
+
 import { Item } from "dynamoose/dist/Item";
 import { TicketEntity } from "@domain/entities/TicketEntity";
 
@@ -11,7 +12,7 @@ const TicketSchema = new dynamoose.Schema({
   imageUrl: { type: String, required: true },
   metadataUrl: { type: String, required: true },
 
-  eventId: { type: String, required: true },
+  eventId: { type: String, required: true, index: { name: "eventIdIndex", type: "global" } },
   eventName: { type: String, required: true },
   prName: { type: String, required: true },
 
@@ -30,4 +31,6 @@ const TicketSchema = new dynamoose.Schema({
 
 const tableName = `TICKETS_${process.env.ENV}`;
 
-export const TicketModel = dynamoose.model<TicketDocument>(tableName, TicketSchema, { throughput: "ON_DEMAND" });
+export const TicketModel = dynamoose.model<TicketDocument>(tableName, TicketSchema, {
+  throughput: "ON_DEMAND",
+});

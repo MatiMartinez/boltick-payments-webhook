@@ -10,12 +10,12 @@ export interface RedeemFreeTicketInput {
 }
 
 export interface RedeemFreeTicketOutput {
-  success: boolean;
-  ticket?: {
+  result: number;
+  message: string;
+  data?: {
     ticketNumber: string;
     mint: string;
     metadataUrl: string;
     type: string;
   };
-  message: string;
 }

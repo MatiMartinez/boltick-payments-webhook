@@ -4,4 +4,5 @@ export interface ITicketRepository {
   save(ticket: TicketEntity): Promise<void>;
   findByTicketNumber(ticketNumber: string): Promise<TicketEntity | null>;
   update(ticket: TicketEntity): Promise<void>;
+  findFreeTicketsByEventId(eventId: string): Promise<TicketEntity[]>;
 }

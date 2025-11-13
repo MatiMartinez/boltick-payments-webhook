@@ -54,8 +54,8 @@ export class RedeemFreeTicketUseCase implements IRedeemFreeTicketUseCase {
       await this.updateTicketCount(input.eventId, input.ticketType);
 
       return {
-        success: true,
-        ticket: {
+        result: 1,
+        data: {
           ticketNumber,
           mint: mintedToken.address,
           metadataUrl,
@@ -70,7 +70,7 @@ export class RedeemFreeTicketUseCase implements IRedeemFreeTicketUseCase {
         input,
       });
       return {
-        success: false,
+        result: 0,
         message: err.message || "Error al canjear ticket free",
       };
     }

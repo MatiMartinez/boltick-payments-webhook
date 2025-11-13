@@ -1,6 +1,8 @@
 import { EventDynamoRepository } from "@repositories/EventDynamoRepository";
+import { GetFreeTicketsByEventIdUseCase } from "@useCases/GetFreeTicketsByEventIdUseCase/GetFreeTicketsByEventIdUseCase";
 import { GetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/GetTicketCountByEventIdUseCase";
 import { IEventRepository } from "@domain/repositories/IEventRepository";
+import { IGetFreeTicketsByEventIdUseCase } from "@useCases/GetFreeTicketsByEventIdUseCase/interface";
 import { IGetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/interface";
 import { ILogger } from "@commons/Logger/interface";
 import { IRedeemFreeTicketUseCase } from "@useCases/RedeemFreeTicketUseCase/interface";
@@ -48,6 +50,7 @@ export class Container {
   private ValidateManualEntryUseCase: IValidateManualEntryUseCase;
   private GetTicketCountByEventIdUseCase: IGetTicketCountByEventIdUseCase;
   private RedeemFreeTicketUseCase: IRedeemFreeTicketUseCase;
+  private GetFreeTicketsByEventIdUseCase: IGetFreeTicketsByEventIdUseCase;
 
   private PaymentAPIController: PaymentAPIController;
   private PaymentSQSController: PaymentSQSController;
@@ -127,6 +130,11 @@ export class Container {
       this.SolanaService,
       this.Logger
     );
+    this.GetFreeTicketsByEventIdUseCase = new GetFreeTicketsByEventIdUseCase(
+      this.TicketRepository,
+      this.EventRepository,
+      this.Logger
+    );
 
     this.PaymentAPIController = new PaymentAPIController(
       this.UpdatePaymentUseCase,
@@ -137,7 +145,8 @@ export class Container {
       this.ValidateEntryUseCase,
       this.ValidateManualEntryUseCase,
       this.GetTicketCountByEventIdUseCase,
-      this.RedeemFreeTicketUseCase
+      this.RedeemFreeTicketUseCase,
+      this.GetFreeTicketsByEventIdUseCase
     );
   }
 

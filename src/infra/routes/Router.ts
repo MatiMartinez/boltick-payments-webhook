@@ -17,5 +17,8 @@ Router.get("/ticket-count/:id", (req, res) => TicketController.GetTicketCountByE
 Router.post("/redeem-free-ticket", cognitoAuthMiddleware, (req, res) =>
   TicketController.RedeemFreeTicket(req, res)
 );
+Router.get("/free-tickets/:id", cognitoAuthMiddleware, (req, res) =>
+  TicketController.GetFreeTicketsByEventId(req, res)
+);
 
 export { Router };
