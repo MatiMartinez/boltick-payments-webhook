@@ -45,6 +45,7 @@ const EventSchema = new dynamoose.Schema({
   locationLink: { type: String, required: true },
   name: { type: String, required: true },
   prs: { type: Array, schema: [{ type: Object, schema: PRSchema }] },
+  producer: { type: String, required: true, index: { name: "producerIndex" } },
   startDate: { type: Number, required: true },
   tickets: { type: Array, schema: [{ type: Object, schema: TicketSchema }] },
   time: { type: String, required: true },

@@ -14,6 +14,7 @@ export interface EventEntity {
   locationLink: string;
   name: string;
   prs: PR[];
+  producer: string;
   startDate: number;
   tickets: Ticket[];
   time: string;
