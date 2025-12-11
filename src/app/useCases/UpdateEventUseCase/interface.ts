@@ -6,7 +6,6 @@ export interface IUpdateEventUseCase {
 
 export type UpdateEventInput = {
   id: string;
-  createdAt: number;
 } & Partial<Omit<EventEntity, "id" | "createdAt">>;
 
 export interface UpdateEventOutput {

@@ -10,13 +10,13 @@ export class UpdateEventUseCase implements IUpdateEventUseCase {
 
   async execute(input: UpdateEventInput): Promise<UpdateEventOutput> {
     try {
-      const { id, createdAt, ...updateData } = input;
+      const { id, ...updateData } = input;
 
       if (!id || id.trim() === "") {
         return { success: 0, message: "EventId no proporcionado" };
       }
 
-      const updatedEvent = await this.EventRepository.update(id, createdAt, updateData);
+      const updatedEvent = await this.EventRepository.update(id, updateData);
       return { success: 1, message: "Evento actualizado correctamente", data: updatedEvent };
     } catch (error) {
       this.Logger.error("[UpdateEventUseCase] Error al actualizar el evento", { error: (error as Error).message });

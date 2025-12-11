@@ -13,7 +13,6 @@ export interface EventEntity {
   location: string;
   locationLink: string;
   name: string;
-  prs: PR[];
   producer: string;
   startDate: number;
   tickets: Ticket[];
@@ -23,15 +22,6 @@ export interface EventEntity {
 interface Artist {
   description: string;
   name: string;
-}
-
-interface PR {
-  id: string;
-  email: string;
-  name: string;
-  phone: string;
-  photo: string;
-  slug: string;
 }
 
 interface Ticket {

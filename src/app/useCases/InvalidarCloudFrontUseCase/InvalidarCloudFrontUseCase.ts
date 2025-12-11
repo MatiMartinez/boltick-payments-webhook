@@ -1,4 +1,4 @@
-import { IInvalidarCloudFrontUseCase, InvalidarCloudFrontInput, InvalidarCloudFrontOutput } from "./interface";
+import { IInvalidarCloudFrontUseCase, InvalidarCloudFrontOutput } from "./interface";
 import { ICloudFrontService } from "@services/CloudFront/interface";
 import { ILogger } from "@commons/Logger/interface";
 
@@ -8,13 +8,10 @@ export class InvalidarCloudFrontUseCase implements IInvalidarCloudFrontUseCase {
     private Logger: ILogger
   ) {}
 
-  async execute(input: InvalidarCloudFrontInput): Promise<InvalidarCloudFrontOutput> {
+  async execute(): Promise<InvalidarCloudFrontOutput> {
     try {
-      const { distributionId } = input;
-
-      if (!distributionId || distributionId.trim() === "") {
-        return { success: 0, message: "distributionId es requerido" };
-      }
+      const isProd = process.env.ENV === "PROD";
+      const distributionId = isProd ? "E2R909CPN0AOPY" : "ENGFJ8OYMQHDQ";
 
       const paths = ["/*"];
       await this.CloudFrontService.invalidarPaths({

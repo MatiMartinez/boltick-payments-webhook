@@ -6,9 +6,7 @@ export class CloudFrontController {
 
   async InvalidateAll(req: Request, res: Response): Promise<void> {
     try {
-      const { distributionId } = req.body;
-
-      const result = await this.InvalidarCloudFrontUseCase.execute({ distributionId });
+      const result = await this.InvalidarCloudFrontUseCase.execute();
 
       if (result.success === 0) {
         res.status(400).json(result);

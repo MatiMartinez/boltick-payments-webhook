@@ -31,9 +31,9 @@ export class EventDynamoRepository implements IEventRepository {
     }
   }
 
-  async update(id: string, createdAt: number, data: Partial<Omit<EventEntity, "id" | "createdAt">>) {
+  async update(id: string, data: Partial<Omit<EventEntity, "id" | "createdAt">>) {
     try {
-      const updatedEvent = await EventModel.update({ id, createdAt }, data);
+      const updatedEvent = await EventModel.update({ id }, data);
       return updatedEvent as EventEntity;
     } catch (error) {
       this.logger.error("[EventDynamoRepository] Error al actualizar evento", { eventId: id, error: (error as Error).message });

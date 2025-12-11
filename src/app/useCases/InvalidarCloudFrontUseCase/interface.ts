@@ -1,10 +1,6 @@
 export interface IInvalidarCloudFrontUseCase {
-  execute(input: InvalidarCloudFrontInput): Promise<InvalidarCloudFrontOutput>;
+  execute(): Promise<InvalidarCloudFrontOutput>;
 }
-
-export type InvalidarCloudFrontInput = {
-  distributionId: string;
-};
 
 export interface InvalidarCloudFrontOutput {
   success: number;
