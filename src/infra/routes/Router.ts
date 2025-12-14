@@ -1,5 +1,5 @@
-import express from "express";
 import { Container } from "@containers/Container";
+import express from "express";
 
 const Router = express.Router();
 
@@ -19,12 +19,19 @@ Router.get("/ticket-count/:id", (req, res) => TicketController.GetTicketCountByE
 Router.get("/prs/:producer", (req, res) => PRController.GetPRsByProducer(req, res));
 Router.post("/prs", (req, res) => PRController.CreatePR(req, res));
 Router.put("/prs", (req, res) => PRController.UpdatePR(req, res));
+Router.delete("/prs", (req, res) => PRController.DeletePR(req, res));
 
-Router.get("/events/:eventId/count", (req, res) => EventController.GetTicketCountByEventId(req, res));
-Router.get("/events/producer/:producer", (req, res) => EventController.GetEventsByProducer(req, res));
+Router.get("/events/:eventId/count", (req, res) =>
+  EventController.GetTicketCountByEventId(req, res)
+);
+Router.get("/events/producer/:producer", (req, res) =>
+  EventController.GetEventsByProducer(req, res)
+);
 Router.get("/events/:id", (req, res) => EventController.GetEventById(req, res));
 Router.put("/events/:id", (req, res) => EventController.UpdateEvent(req, res));
 
-Router.post("/cloudfront/invalidate-all", (req, res) => CloudFrontController.InvalidateAll(req, res));
+Router.post("/cloudfront/invalidate-all", (req, res) =>
+  CloudFrontController.InvalidateAll(req, res)
+);
 
 export { Router };

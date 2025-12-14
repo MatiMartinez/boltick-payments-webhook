@@ -1,13 +1,16 @@
 import { Request, Response } from "express";
-import { IGetPRsByProducerUseCase } from "@useCases/GetPRsByProducerUseCase/interface";
+
 import { ICreatePRUseCase } from "@useCases/CreatePRUseCase/interface";
+import { IDeletePRUseCase } from "@useCases/DeletePRUseCase/interface";
+import { IGetPRsByProducerUseCase } from "@useCases/GetPRsByProducerUseCase/interface";
 import { IUpdatePRUseCase } from "@useCases/UpdatePRUseCase/interface";
 
 export class PRController {
   constructor(
     private GetPRsByProducerUseCase: IGetPRsByProducerUseCase,
     private CreatePRUseCase: ICreatePRUseCase,
-    private UpdatePRUseCase: IUpdatePRUseCase
+    private UpdatePRUseCase: IUpdatePRUseCase,
+    private DeletePRUseCase: IDeletePRUseCase
   ) {}
 
   async CreatePR(req: Request, res: Response): Promise<void> {
@@ -40,6 +43,17 @@ export class PRController {
     } catch (error) {
       const err = error as Error;
       console.error("Error updating PR:", err.message);
+      res.status(400).json({ error: err.message });
+    }
+  }
+
+  async DeletePR(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await this.DeletePRUseCase.execute(req.body);
+      res.status(200).json(result);
+    } catch (error) {
+      const err = error as Error;
+      console.error("Error deleting PR:", err.message);
       res.status(400).json({ error: err.message });
     }
   }
