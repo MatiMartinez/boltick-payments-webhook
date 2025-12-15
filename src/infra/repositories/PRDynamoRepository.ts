@@ -44,32 +44,12 @@ export class PRDynamoRepository implements IPRRepository {
     }
   }
 
-  async findByEmailAndProducer(email: string, producer: string): Promise<PREntity | null> {
+  async findByNameAndProducer(name: string, producer: string): Promise<PREntity | null> {
     try {
-      const response = await PRModel.query("producer")
-        .eq(producer)
-        .filter("email")
-        .eq(email)
-        .exec();
+      const response = await PRModel.query("producer").eq(producer).filter("name").eq(name).exec();
       return response.length > 0 ? (response[0] as unknown as PREntity) : null;
     } catch (error) {
-      this.Logger.error("[PRDynamoRepository] Error al buscar PR por email y producer", {
-        error: (error as Error).message,
-      });
-      throw error;
-    }
-  }
-
-  async findByPhoneAndProducer(phone: string, producer: string): Promise<PREntity | null> {
-    try {
-      const response = await PRModel.query("producer")
-        .eq(producer)
-        .filter("phone")
-        .eq(phone)
-        .exec();
-      return response.length > 0 ? (response[0] as unknown as PREntity) : null;
-    } catch (error) {
-      this.Logger.error("[PRDynamoRepository] Error al buscar PR por phone y producer", {
+      this.Logger.error("[PRDynamoRepository] Error al buscar PR por name y producer", {
         error: (error as Error).message,
       });
       throw error;

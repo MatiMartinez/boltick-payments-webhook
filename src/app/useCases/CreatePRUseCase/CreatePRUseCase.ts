@@ -13,13 +13,13 @@ export class CreatePRUseCase implements ICreatePRUseCase {
 
   async execute(input: CreatePRInput): Promise<CreatePROutput> {
     try {
-      // Validar duplicados por email o phone
-      const [existingByEmail, existingByPhone] = await Promise.all([
-        this.PRRepository.findByEmailAndProducer(input.email, input.producer),
-        this.PRRepository.findByPhoneAndProducer(input.phone, input.producer),
-      ]);
+      // Validar duplicados por name
+      const existingByName = await this.PRRepository.findByNameAndProducer(
+        input.name,
+        input.producer
+      );
 
-      if (existingByEmail || existingByPhone) {
+      if (existingByName) {
         return { success: 0, message: "PR ya existe para este productor" };
       }
 
