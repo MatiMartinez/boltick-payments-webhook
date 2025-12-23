@@ -55,23 +55,23 @@ export class TicketController {
     try {
       const { eventId, ticketType, walletPublicKey } = req.body;
 
-      const userId = (req as any).user?.username || (req as any).user?.attributes?.sub;
+      // const userId = (req as any).user?.username || (req as any).user?.attributes?.sub;
 
       if (!eventId || !ticketType || !walletPublicKey) {
         res.status(400).json({ error: "eventId, ticketType y walletPublicKey son requeridos" });
         return;
       }
 
-      if (!userId) {
-        res.status(401).json({ error: "Usuario no autenticado" });
-        return;
-      }
+      // if (!userId) {
+      //   res.status(401).json({ error: "Usuario no autenticado" });
+      //   return;
+      // }
 
       const result = await this.RedeemFreeTicketUseCase.execute({
         eventId,
         ticketType,
         walletPublicKey,
-        userId,
+        userId: "",
       });
 
       if (result.success === 1) {

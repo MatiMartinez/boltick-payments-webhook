@@ -1,6 +1,5 @@
 import express from "express";
 import { Container } from "@containers/Container";
-import { cognitoAuthMiddleware } from "@middlewares/CognitoAuthMiddleware";
 
 const Router = express.Router();
 
@@ -29,7 +28,7 @@ Router.put("/events/:id", (req, res) => EventController.UpdateEvent(req, res));
 
 Router.post("/cloudfront/invalidate-all", (req, res) => CloudFrontController.InvalidateAll(req, res));
 
-Router.post("/redeem-free-ticket", cognitoAuthMiddleware, (req, res) => TicketController.RedeemFreeTicket(req, res));
-Router.post("/tickets/by-category", cognitoAuthMiddleware, (req, res) => TicketController.GetTicketsByEventCategory(req, res));
+Router.post("/redeem-free-ticket", (req, res) => TicketController.RedeemFreeTicket(req, res));
+Router.post("/tickets/by-category", (req, res) => TicketController.GetTicketsByEventCategory(req, res));
 
 export { Router };

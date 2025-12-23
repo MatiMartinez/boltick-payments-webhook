@@ -31,8 +31,6 @@ export class RedeemFreeTicketUseCase implements IRedeemFreeTicketUseCase {
       const event = await this.validateEvent(input.eventId);
       const ticketInfo = this.findTicketType(event, input.ticketType);
 
-      this.validateFreeTicket(ticketInfo);
-
       const now = new Date().getTime();
 
       const ticketNumber = this.TicketService.generateId(event.collectionSymbol, event.edition);
@@ -94,12 +92,6 @@ export class RedeemFreeTicketUseCase implements IRedeemFreeTicketUseCase {
       throw new Error(`El tipo de ticket "${ticketType}" no existe para este evento`);
     }
     return ticket;
-  }
-
-  private validateFreeTicket(ticketInfo: any): void {
-    if (ticketInfo.price !== 0 || ticketInfo.priceWithoutTax !== 0) {
-      throw new Error("Este tipo de ticket no es gratuito");
-    }
   }
 
   private async uploadMetadata(event: EventEntity, ticketInfo: Ticket, input: RedeemFreeTicketInput, ticketNumber: string, now: number): Promise<string> {
