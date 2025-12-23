@@ -20,4 +20,7 @@ export interface TicketEntity {
 
   entryCode: string;
   entryCodeExpiresAt: number;
+
+  category: string;
+  eventIdCategoryIndex: string;
 }

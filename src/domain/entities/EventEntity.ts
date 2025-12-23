@@ -24,7 +24,7 @@ interface Artist {
   name: string;
 }
 
-interface Ticket {
+export interface Ticket {
   id: string;
   availableTickets: number;
   description: string;

@@ -9,6 +9,7 @@ import { ITicketRepository } from "@domain/repositories/TicketRepository";
 import { IEventRepository } from "@domain/repositories/IEventRepository";
 import { ILogger } from "@commons/Logger/interface";
 import { EventEntity } from "@domain/entities/EventEntity";
+import { ITicketService } from "@app/services/TicketService/interface";
 
 export class SendNFTUseCase implements ISendNFTUseCase {
   constructor(
@@ -17,6 +18,7 @@ export class SendNFTUseCase implements ISendNFTUseCase {
     private EventRepository: IEventRepository,
     private S3Service: S3Service,
     private SolanaService: SolanaService,
+    private TicketService: ITicketService,
     private Logger: ILogger
   ) {}
 
@@ -27,7 +29,7 @@ export class SendNFTUseCase implements ISendNFTUseCase {
 
     const now = new Date().getTime();
 
-    const ticketNumber = this.generateTicketId(dbNFT.collectionSymbol, event.edition);
+    const ticketNumber = this.TicketService.generateId(dbNFT.collectionSymbol, event.edition);
     const metadataUrl = await this.uploadMetadata(dbNFT, payment, ticketNumber, now);
 
     const nftMetadata = this.generateNFTMetadata(dbNFT, ticketNumber, metadataUrl);
@@ -76,19 +78,6 @@ export class SendNFTUseCase implements ISendNFTUseCase {
     }
 
     return nft;
-  }
-
-  private generateTicketId(companyPrefix: string, eventNumber: number): string {
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const randomLetter1 = letters.charAt(Math.floor(Math.random() * letters.length));
-    const randomLetter2 = letters.charAt(Math.floor(Math.random() * letters.length));
-
-    const randomDigits = Math.floor(100000 + Math.random() * 900000);
-
-    const prefix = companyPrefix.substring(0, 3).toUpperCase();
-    const eventCode = eventNumber.toString().padStart(2, "0");
-
-    return `${prefix}${eventCode}-${randomLetter1}${randomLetter2}${randomDigits}`;
   }
 
   private async uploadMetadata(nft: NFT, payment: PaymentEntity, ticketNumber: string, now: number): Promise<string> {

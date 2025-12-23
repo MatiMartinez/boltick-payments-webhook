@@ -8,6 +8,7 @@ import { GetEventByIdUseCase } from "@useCases/GetEventByIdUseCase/GetEventByIdU
 import { GetEventsByProducerUseCase } from "@useCases/GetEventsByProducerUseCase/GetEventsByProducerUseCase";
 import { GetPRsByProducerUseCase } from "@useCases/GetPRsByProducerUseCase/GetPRsByProducerUseCase";
 import { GetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/GetTicketCountByEventIdUseCase";
+import { GetTicketsByEventCategoryUseCase } from "@useCases/GetTicketsByEventCategoryUseCase/GetTicketsByEventCategoryUseCase";
 import { ICloudFrontService } from "@services/CloudFront/interface";
 import { ICreatePRUseCase } from "@useCases/CreatePRUseCase/interface";
 import { IDeletePRUseCase } from "@useCases/DeletePRUseCase/interface";
@@ -16,7 +17,9 @@ import { IGetEventByIdUseCase } from "@useCases/GetEventByIdUseCase/interface";
 import { IGetEventsByProducerUseCase } from "@useCases/GetEventsByProducerUseCase/interface";
 import { IGetPRsByProducerUseCase } from "@useCases/GetPRsByProducerUseCase/interface";
 import { IGetTicketCountByEventIdUseCase } from "@useCases/GetTicketCountByEventIdUseCase/interface";
+import { IGetTicketsByEventCategoryUseCase } from "@useCases/GetTicketsByEventCategoryUseCase/interface";
 import { IInvalidarCloudFrontUseCase } from "@useCases/InvalidarCloudFrontUseCase/interface";
+import { IRedeemFreeTicketUseCase } from "@useCases/RedeemFreeTicketUseCase/interface";
 import { ILogger } from "@commons/Logger/interface";
 import { IPRRepository } from "@domain/repositories/IPRRepository";
 import { ISQSService } from "@services/SQS/interface";
@@ -46,6 +49,10 @@ import { UpdatePRUseCase } from "@useCases/UpdatePRUseCase/UpdatePRUseCase";
 import { UpdatePaymentUseCase } from "@useCases/UpdatePaymentUseCase/UpdatePaymentUseCase";
 import { ValidateEntryUseCase } from "@useCases/ValidateEntryUseCase/ValidateEntryUseCase";
 import { ValidateManualEntryUseCase } from "@useCases/ValidateManualEntryUseCase/ValidateManualEntryUseCase";
+import { RedeemFreeTicketUseCase } from "@useCases/RedeemFreeTicketUseCase/RedeemFreeTicketUseCase";
+
+import { ITicketService } from "@app/services/TicketService/interface";
+import { TicketService } from "@app/services/TicketService/TicketService";
 
 export class Container {
   private static instance: Container;
@@ -57,6 +64,8 @@ export class Container {
   private SolanaService: SolanaService;
   private SQSService: ISQSService;
   private CloudFrontService: ICloudFrontService;
+
+  private TicketService: ITicketService;
 
   private PaymentRepository: PaymentDynamoRepository;
   private TicketCountRepository: TicketCountDynamoRepository;
@@ -78,6 +87,8 @@ export class Container {
   private UpdatePRUseCase: IUpdatePRUseCase;
   private DeletePRUseCase: IDeletePRUseCase;
   private InvalidarCloudFrontUseCase: IInvalidarCloudFrontUseCase;
+  private RedeemFreeTicketUseCase: IRedeemFreeTicketUseCase;
+  private GetTicketsByEventCategoryUseCase: IGetTicketsByEventCategoryUseCase;
 
   private PaymentAPIController: PaymentAPIController;
   private PaymentSQSController: PaymentSQSController;
@@ -113,6 +124,8 @@ export class Container {
     this.SQSService = new SQSService(sqsQueueUrl, this.Logger);
     this.CloudFrontService = new CloudFrontService();
 
+    this.TicketService = new TicketService();
+
     this.PaymentRepository = new PaymentDynamoRepository(this.Logger);
     this.TicketCountRepository = new TicketCountDynamoRepository(this.Logger);
     this.TicketRepository = new TicketDynamoRepository(this.Logger);
@@ -125,6 +138,7 @@ export class Container {
       this.EventRepository,
       this.S3Service,
       this.SolanaService,
+      this.TicketService,
       this.Logger
     );
     this.UpdatePaymentUseCase = new UpdatePaymentUseCase(
@@ -134,57 +148,39 @@ export class Container {
       this.SQSService,
       this.Logger
     );
-    this.UpdateFreePaymentUseCase = new UpdateFreePaymentUseCase(
-      this.PaymentRepository,
-      this.TicketCountRepository,
-      this.SQSService,
-      this.Logger
-    );
-    this.ValidateEntryUseCase = new ValidateEntryUseCase(
-      this.TicketRepository,
-      this.S3Service,
-      this.TicketCountRepository
-    );
-    this.ValidateManualEntryUseCase = new ValidateManualEntryUseCase(
-      this.TicketRepository,
-      this.S3Service,
-      this.TicketCountRepository
-    );
-    this.GetTicketCountByEventIdUseCase = new GetTicketCountByEventIdUseCase(
-      this.TicketCountRepository,
-      this.Logger
-    );
+    this.UpdateFreePaymentUseCase = new UpdateFreePaymentUseCase(this.PaymentRepository, this.TicketCountRepository, this.SQSService, this.Logger);
+    this.ValidateEntryUseCase = new ValidateEntryUseCase(this.TicketRepository, this.S3Service, this.TicketCountRepository);
+    this.ValidateManualEntryUseCase = new ValidateManualEntryUseCase(this.TicketRepository, this.S3Service, this.TicketCountRepository);
+    this.GetTicketCountByEventIdUseCase = new GetTicketCountByEventIdUseCase(this.TicketCountRepository, this.Logger);
     this.GetPRsByProducerUseCase = new GetPRsByProducerUseCase(this.PRRepository, this.Logger);
-    this.GetEventsByProducerUseCase = new GetEventsByProducerUseCase(
-      this.EventRepository,
-      this.Logger
-    );
+    this.GetEventsByProducerUseCase = new GetEventsByProducerUseCase(this.EventRepository, this.Logger);
     this.GetEventByIdUseCase = new GetEventByIdUseCase(this.EventRepository, this.Logger);
     this.UpdateEventUseCase = new UpdateEventUseCase(this.EventRepository, this.Logger);
     this.CreatePRUseCase = new CreatePRUseCase(this.PRRepository, this.Logger);
     this.UpdatePRUseCase = new UpdatePRUseCase(this.PRRepository, this.Logger);
     this.DeletePRUseCase = new DeletePRUseCase(this.PRRepository, this.Logger);
-    this.InvalidarCloudFrontUseCase = new InvalidarCloudFrontUseCase(
-      this.CloudFrontService,
+    this.InvalidarCloudFrontUseCase = new InvalidarCloudFrontUseCase(this.CloudFrontService, this.Logger);
+    this.RedeemFreeTicketUseCase = new RedeemFreeTicketUseCase(
+      this.EventRepository,
+      this.TicketRepository,
+      this.TicketCountRepository,
+      this.S3Service,
+      this.SolanaService,
+      this.TicketService,
       this.Logger
     );
+    this.GetTicketsByEventCategoryUseCase = new GetTicketsByEventCategoryUseCase(this.TicketRepository, this.Logger);
 
-    this.PaymentAPIController = new PaymentAPIController(
-      this.UpdatePaymentUseCase,
-      this.UpdateFreePaymentUseCase
-    );
+    this.PaymentAPIController = new PaymentAPIController(this.UpdatePaymentUseCase, this.UpdateFreePaymentUseCase);
     this.PaymentSQSController = new PaymentSQSController(this.SendNFTUseCase, this.Logger);
     this.TicketController = new TicketController(
       this.ValidateEntryUseCase,
       this.ValidateManualEntryUseCase,
-      this.GetTicketCountByEventIdUseCase
+      this.GetTicketCountByEventIdUseCase,
+      this.RedeemFreeTicketUseCase,
+      this.GetTicketsByEventCategoryUseCase
     );
-    this.PRController = new PRController(
-      this.GetPRsByProducerUseCase,
-      this.CreatePRUseCase,
-      this.UpdatePRUseCase,
-      this.DeletePRUseCase
-    );
+    this.PRController = new PRController(this.GetPRsByProducerUseCase, this.CreatePRUseCase, this.UpdatePRUseCase, this.DeletePRUseCase);
     this.EventController = new EventController(
       this.GetEventsByProducerUseCase,
       this.GetTicketCountByEventIdUseCase,

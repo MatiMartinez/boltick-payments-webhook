@@ -1,4 +1,5 @@
 import * as dynamoose from "dynamoose";
+
 import { Item } from "dynamoose/dist/Item";
 import { TicketEntity } from "@domain/entities/TicketEntity";
 
@@ -26,8 +27,13 @@ const TicketSchema = new dynamoose.Schema({
 
   entryCode: { type: String, required: true },
   entryCodeExpiresAt: { type: Number, required: true },
+
+  category: { type: String, required: true },
+  eventIdCategoryIndex: { type: String, required: true, index: { name: "eventIdCategoryIndex", rangeKey: "createdAt" } },
 });
 
 const tableName = `TICKETS_${process.env.ENV}`;
 
-export const TicketModel = dynamoose.model<TicketDocument>(tableName, TicketSchema, { throughput: "ON_DEMAND" });
+export const TicketModel = dynamoose.model<TicketDocument>(tableName, TicketSchema, {
+  throughput: "ON_DEMAND",
+});

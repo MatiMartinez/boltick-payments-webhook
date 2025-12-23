@@ -16,6 +16,7 @@
     "strictPropertyInitialization": false,
     "target": "ES2015",
     "paths": {
+      "@app/*": ["src/app/*"],
       "@commons/*": ["src/infra/commons/*"],
       "@containers/*": ["src/infra/containers/*"],
       "@controllers/*": ["src/infra/controllers/*"],
