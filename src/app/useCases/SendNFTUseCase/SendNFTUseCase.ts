@@ -172,6 +172,9 @@ export class SendNFTUseCase implements ISendNFTUseCase {
 
       entryCode: "",
       entryCodeExpiresAt: 0,
+
+      category: "PAID",
+      eventIdCategoryIndex: `${payment.eventId}#PAID`,
     };
 
     await this.TicketRepository.save(ticketEntity);
